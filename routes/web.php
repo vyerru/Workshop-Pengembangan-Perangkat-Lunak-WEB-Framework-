@@ -9,6 +9,11 @@ use Laravel\Socialite\Socialite;
 use App\Http\Controllers\LoginCallbackController;
 use App\Http\Controllers\pdfController;
 use App\Http\Controllers\BarangController;
+use App\Http\Controllers\PosController;
+use Laravolt\Indonesia\Models\Province;
+use Laravolt\Indonesia\Models\City;
+use Laravolt\Indonesia\Models\District;
+use Laravolt\Indonesia\Models\Village;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -33,4 +38,21 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/cetak/sertifikat', [pdfController::class, 'cetakSertifikat'])->name('cetak.sertifikat');
     Route::get('/cetak/undangan', [pdfController::class, 'cetakUndangan'])->name('cetak.undangan');
     Route::post('/barang/cetak-label', [BarangController::class, 'cetakLabel'])->name('barang.cetak_label');
+
+    Route::get('/wilayah/ajax', function () {
+        return view('wilayah.ajax');
+    })->name('wilayah.ajax');
+    Route::get('/wilayah/axios', function () {
+        return view('wilayah.axios');
+    })->name('wilayah.axios');
+    Route::get('/api/provinces', fn() => Province::all(['code', 'name']));
+    Route::get('/api/cities/{code}', fn($code) => City::where('province_code', $code)->get(['code', 'name']));
+    Route::get('/api/districts/{code}', fn($code) => District::where('city_code', $code)->get(['code', 'name']));
+    Route::get('/api/villages/{code}', fn($code) => Village::where('district_code', $code)->get(['code', 'name']));
+
+    // Route Studi Kasus 2: POS Kasir
+    Route::get('/pos/ajax', [PosController::class, 'ajax'])->name('pos.ajax');
+    Route::get('/pos/axios', [PosController::class, 'axios'])->name('pos.axios');
+    Route::get('/pos/barang/{id}', [PosController::class, 'getBarang']);
+    Route::post('/pos/store', [PosController::class, 'store']);
 });

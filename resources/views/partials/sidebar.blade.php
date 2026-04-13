@@ -16,40 +16,66 @@
           <i class="mdi mdi-bookmark-check text-success nav-profile-badge"></i>
         </a>
       </li>
- <li class="nav-item {{ request()->is('home') ? 'active' : '' }}">
-      <a class="nav-link" href="{{ route('home') }}">
-        <span class="menu-title">Dashboard</span> <i class="mdi mdi-home menu-icon"></i>
-      </a>
-    </li>
-    <li class="nav-item {{ request()->is('kategori*') ? 'active' : '' }}">
-      <a class="nav-link" href="{{ route('kategori.index') }}">
-        <span class="menu-title">Kategori</span>
-        <i class="mdi mdi-format-list-bulleted menu-icon"></i>
-      </a>
-    </li>
-    <li class="nav-item {{ request()->is('buku*') ? 'active' : '' }}">
-      <a class="nav-link" href="{{ route('buku.index') }}">
-        <span class="menu-title">Buku</span>
-        <i class="mdi mdi-book-open-variant menu-icon"></i>
-      </a>
-    </li>
-    <li class="nav-item {{ request()->is('barang*') ? 'active' : '' }}">
-      <a class="nav-link" href="{{ url('barang') }}">
-        <span class="menu-title">Barang</span>
-        <i class="mdi mdi-package-variant menu-icon"></i>
-      </a>
-    </li>
-    <li class="nav-item {{ request()->is('cetak/sertifikat') ? 'active' : '' }}">
-      <a class="nav-link" href="{{ url('cetak/sertifikat') }}">
-        <span class="menu-title">Cetak Sertifikat</span>
-        <i class="mdi mdi-certificate menu-icon"></i>
-      </a>
-    </li>
-    <li class="nav-item {{ request()->is('cetak/undangan') ? 'active' : '' }}">
-      <a class="nav-link" href="{{ url('cetak/undangan') }}">
-        <span class="menu-title">Cetak Undangan</span>
-        <i class="mdi mdi-email menu-icon"></i>
-      </a>
-    </li>
+      <li class="nav-item {{ request()->is('home') ? 'active' : '' }}">
+        <a class="nav-link" href="{{ route('home') }}">
+          <span class="menu-title">Dashboard</span> <i class="mdi mdi-home menu-icon"></i>
+        </a>
+      </li>
+      <li class="nav-item {{ request()->is('kategori*') ? 'active' : '' }}">
+        <a class="nav-link" href="{{ route('kategori.index') }}">
+          <span class="menu-title">Kategori</span>
+          <i class="mdi mdi-format-list-bulleted menu-icon"></i>
+        </a>
+      </li>
+      <li class="nav-item {{ request()->is('buku*') ? 'active' : '' }}">
+        <a class="nav-link" href="{{ route('buku.index') }}">
+          <span class="menu-title">Buku</span>
+          <i class="mdi mdi-book-open-variant menu-icon"></i>
+        </a>
+      </li>
+      <li class="nav-item {{ request()->is('barang*') ? 'active' : '' }}">
+        <a class="nav-link" href="{{ url('barang') }}">
+          <span class="menu-title">Barang</span>
+          <i class="mdi mdi-package-variant menu-icon"></i>
+        </a>
+      </li>
+      <li class="nav-item {{ request()->is('cetak/sertifikat') ? 'active' : '' }}">
+        <a class="nav-link" href="{{ url('cetak/sertifikat') }}">
+          <span class="menu-title">Cetak Sertifikat</span>
+          <i class="mdi mdi-certificate menu-icon"></i>
+        </a>
+      </li>
+      <li class="nav-item {{ request()->is('cetak/undangan') ? 'active' : '' }}">
+        <a class="nav-link" href="{{ url('cetak/undangan') }}">
+          <span class="menu-title">Cetak Undangan</span>
+          <i class="mdi mdi-email menu-icon"></i>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="collapse" href="#wilayah-menu" aria-expanded="false" aria-controls="wilayah-menu">
+          <i class="mdi mdi-map menu-icon"></i>
+          <span class="menu-title">Studi Kasus 1: Wilayah</span>
+          <i class="menu-arrow"></i>
+        </a>
+        <div class="collapse" id="wilayah-menu">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item"><a class="nav-link" href="{{ route('wilayah.ajax') }}">Metode AJAX</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ route('wilayah.axios') }}">Metode AXIOS</a></li>
+          </ul>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="collapse" href="#pos-menu" aria-expanded="false" aria-controls="pos-menu">
+          <i class="mdi mdi-cart menu-icon"></i>
+          <span class="menu-title">Studi Kasus 2: POS</span>
+          <i class="menu-arrow"></i>
+        </a>
+        <div class="collapse" id="pos-menu">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item"><a class="nav-link" href="{{ route('pos.ajax') }}">Metode AJAX</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ route('pos.axios') }}">Metode AXIOS</a></li>
+          </ul>
+        </div>
+      </li>
     </ul>
   </nav>
