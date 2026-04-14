@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Menu extends Model
 {
-    protected $fillable = ['nama_menu', 'harga', 'path_gambar', 'vendor_id'];
+    protected $fillable = ['vendor_id', 'nama_menu', 'harga', 'path_gambar'];
 
     public function vendor(): BelongsTo
     {
-        return $this->belongsTo(Vendor::class);
+        return $this->belongsTo(Vendor::class, 'vendor_id');
     }
 
     public function detailPesanans(): HasMany

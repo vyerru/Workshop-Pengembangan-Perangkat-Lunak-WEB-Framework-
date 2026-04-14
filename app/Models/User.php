@@ -17,13 +17,21 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+    const ROLE_ADMIN = 'admin';
+    const ROLE_VENDOR = 'vendor';
+    const ROLE_CUSTOMER = 'customer';
     protected $fillable = [
         'name',
         'email',
         'password',
         'id_google',
         'otp',
+        'role',
     ];
+
+    public function hasRole(string $role): bool {
+        return $this->role === $role;
+    }
 
     /**
      * The attributes that should be hidden for serialization.
@@ -47,4 +55,8 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function vendor() {
+    return $this->hasOne(Vendor::class, 'user_id'); 
+}
 }

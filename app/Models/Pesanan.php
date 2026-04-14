@@ -7,12 +7,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Pesanan extends Model
 {
     protected $fillable = [
-        'nama',
-        'total',
-        'status_bayar',
-        'metode_bayar',
+        'nama', 
+        'vendor_id', 
+        'kode_pesanan', 
+        'total', 
+        'status_bayar', 
+        'metode_bayar', 
         'snap_token',
-        'transaction_id',
+        'transaction_id'
     ];
 
     protected $casts = [

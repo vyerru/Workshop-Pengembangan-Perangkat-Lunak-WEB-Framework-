@@ -77,5 +77,30 @@
           </ul>
         </div>
       </li>
+      @if(Auth::check() && Auth::user()->role === 'vendor')
+      <li class="nav-item nav-category">Menu Vendor</li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ route('vendor.dashboard') }}">
+          <i class="menu-icon mdi mdi-television"></i>
+          <span class="menu-title">Dashboard Vendor</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ route('vendor.menus.index') }}">
+          <i class="menu-icon mdi mdi-food"></i>
+          <span class="menu-title">Kelola Menu</span>
+        </a>
+      </li>
+      @endif
+
+      @if(Auth::check() && Auth::user()->role === 'customer')
+      <li class="nav-item nav-category">Area Kantin</li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ route('canteen.pos') }}">
+          <i class="menu-icon mdi mdi-cart"></i>
+          <span class="menu-title">Pesan Makanan</span>
+        </a>
+      </li>
+      @endif
     </ul>
   </nav>

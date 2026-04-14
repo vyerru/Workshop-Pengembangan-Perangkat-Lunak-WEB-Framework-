@@ -15,6 +15,9 @@ use Laravolt\Indonesia\Models\City;
 use Laravolt\Indonesia\Models\District;
 use Laravolt\Indonesia\Models\Village;
 use App\Http\Controllers\WilayahController;
+use App\Http\Controllers\Canteen\VendorMenuController;
+use App\Http\Controllers\Canteen\OrderController;
+use App\Http\Controllers\Canteen\VendorDashboardController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -56,4 +59,21 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pos/axios', [PosController::class, 'axios'])->name('pos.axios');
     Route::get('/pos/barang/{id}', [PosController::class, 'getBarang']);
     Route::post('/pos/store', [PosController::class, 'store']);
+});
+
+Route::middleware(['auth', 'role:customer'])->prefix('canteen')->name('canteen.')->group(function () {
+    Route::get('/pos', [OrderController::class, 'index'])->name('pos');
+
+    // Rute untuk Axios fetch data
+    Route::get('/pos/menus/{vendor_id}', [OrderController::class, 'getMenus'])->name('menus');
+
+    // Rute POST untuk submit keranjang
+    Route::post('/checkout', [OrderController::class, 'checkout'])->name('checkout');
+});
+
+Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->group(function () {
+    Route::get('/dashboard', [VendorDashboardController::class, 'index'])->name('dashboard');
+
+    // Rute CRUD Menu (Hanya Vendor)
+    Route::resource('menus', VendorMenuController::class)->except(['show']);
 });
