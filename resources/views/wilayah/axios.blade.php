@@ -66,27 +66,27 @@
     }
 
     // Load provinsi saat halaman dibuka
-    loadData('/api/provinces', 'provinsi');
+    loadData('/wilayah/provinsi', 'provinsi');
 
     document.getElementById('provinsi').addEventListener('change', function() {
         const code = this.value;
         resetSelect('kota', 'Pilih Kota');
         resetSelect('kecamatan', 'Pilih Kecamatan');
         resetSelect('kelurahan', 'Pilih Kelurahan');
-        if (code) loadData('/api/cities/' + code, 'kota');
+        if (code) loadData('/wilayah/kota/' + code, 'kota');
     });
 
     document.getElementById('kota').addEventListener('change', function() {
         const code = this.value;
         resetSelect('kecamatan', 'Pilih Kecamatan');
         resetSelect('kelurahan', 'Pilih Kelurahan');
-        if (code) loadData('/api/districts/' + code, 'kecamatan');
+        if (code) loadData('/wilayah/kecamatan/' + code, 'kecamatan');
     });
 
     document.getElementById('kecamatan').addEventListener('change', function() {
         const code = this.value;
         resetSelect('kelurahan', 'Pilih Kelurahan');
-        if (code) loadData('/api/villages/' + code, 'kelurahan');
+        if (code) loadData('/wilayah/kelurahan/' + code, 'kelurahan');
     });
 </script>
 @endpush

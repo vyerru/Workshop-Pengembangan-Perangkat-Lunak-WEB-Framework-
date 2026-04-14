@@ -35,6 +35,9 @@
 
 @push('page-scripts')
 <script>
+// Gunakan API publik emsifa — tidak perlu database lokal
+var BASE_URL = '/wilayah';
+
 function resetSelect(id, placeholder) {
     $('#' + id)
         .html('<option value="">' + placeholder + '</option>')
@@ -46,13 +49,10 @@ function loadData(url, targetId, placeholder) {
         url: url,
         type: 'GET',
         dataType: 'json',
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
         success: function(data) {
             data.forEach(function(item) {
                 $('#' + targetId).append(
-                    '<option value="' + item.code + '">' + item.name + '</option>'
+                    '<option value="' + item.id + '">' + item.name + '</option>'
                 );
             });
             $('#' + targetId).prop('disabled', false);
@@ -67,27 +67,27 @@ function loadData(url, targetId, placeholder) {
 $(document).ready(function() {
 
     // Load provinsi saat halaman dibuka
-    loadData('/api/provinces', 'provinsi', 'Provinsi');
+    loadData(BASE_URL + '/provinsi', 'provinsi', 'Provinsi');
 
     $('#provinsi').change(function() {
-        var code = $(this).val();
+        var id = $(this).val();
         resetSelect('kota', 'Pilih Kota');
         resetSelect('kecamatan', 'Pilih Kecamatan');
         resetSelect('kelurahan', 'Pilih Kelurahan');
-        if (code) loadData('/api/cities/' + code, 'kota', 'Kota');
+        if (id) loadData(BASE_URL + '/kota/' + id, 'kota', 'Kota');
     });
 
     $('#kota').change(function() {
-        var code = $(this).val();
+        var id = $(this).val();
         resetSelect('kecamatan', 'Pilih Kecamatan');
         resetSelect('kelurahan', 'Pilih Kelurahan');
-        if (code) loadData('/api/districts/' + code, 'kecamatan', 'Kecamatan');
+        if (id) loadData(BASE_URL + '/kecamatan/' + id, 'kecamatan', 'Kecamatan');
     });
 
     $('#kecamatan').change(function() {
-        var code = $(this).val();
+        var id = $(this).val();
         resetSelect('kelurahan', 'Pilih Kelurahan');
-        if (code) loadData('/api/villages/' + code, 'kelurahan', 'Kelurahan');
+        if (id) loadData(BASE_URL + '/kelurahan/' + id, 'kelurahan', 'Kelurahan');
     });
 
 });

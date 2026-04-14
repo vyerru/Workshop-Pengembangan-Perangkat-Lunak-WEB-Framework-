@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\barang;
+use App\Models\Barang;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -12,13 +12,13 @@ class BarangController extends Controller
 {
     public function index(): View
     {
-        $model = new barang();
+        $model = new Barang();
         $primaryKey = $model->getKeyName();
         $inputColumns = $this->resolveInputColumns($model);
         $columns = array_values(array_unique(array_merge([$primaryKey], $model->getFillable())));
 
         return view('barang.index', [
-            'barang' => barang::query()->orderByDesc($primaryKey)->get(),
+            'barang' => Barang::query()->orderByDesc($primaryKey)->get(),
             'columns' => $columns,
             'inputColumns' => $inputColumns,
             'primaryKey' => $primaryKey,
@@ -27,19 +27,19 @@ class BarangController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $model = new barang();
+        $model = new Barang();
         $payload = $this->validatedPayload($request, $model);
 
         if (in_array('timestamp', $model->getFillable(), true)) {
             $payload['timestamp'] = now()->format('Y-m-d H:i:s');
         }
 
-        barang::create($payload);
+        Barang::create($payload);
 
         return redirect()->route('barang.index')->with('success', 'Data barang berhasil ditambahkan.');
     }
 
-    public function update(Request $request, barang $barang): RedirectResponse
+    public function update(Request $request, Barang $barang): RedirectResponse
     {
         $payload = $this->validatedPayload($request, $barang);
         $barang->update($payload);
@@ -47,14 +47,14 @@ class BarangController extends Controller
         return redirect()->route('barang.index')->with('success', 'Data barang berhasil diperbarui.');
     }
 
-    public function destroy(barang $barang): RedirectResponse
+    public function destroy(Barang $barang): RedirectResponse
     {
         $barang->delete();
 
         return redirect()->route('barang.index')->with('success', 'Data barang berhasil dihapus.');
     }
 
-    private function resolveInputColumns(barang $model): array
+    private function resolveInputColumns(Barang $model): array
     {
         $fillable = $model->getFillable();
 
@@ -64,7 +64,7 @@ class BarangController extends Controller
         ));
     }
 
-    private function validatedPayload(Request $request, barang $model): array
+    private function validatedPayload(Request $request, Barang $model): array
     {
         $inputColumns = $this->resolveInputColumns($model);
         $rules = [];
@@ -98,7 +98,7 @@ class BarangController extends Controller
             'y' => 'required|integer|min:1|max:8',
         ]);
 
-        $barangs = barang::whereIn('id_barang', $request->barang_ids)->get();
+        $barangs = Barang::whereIn('id_barang', $request->barang_ids)->get();
 
         $skip = (($request->y - 1) * 5) + ($request->x - 1);
 
