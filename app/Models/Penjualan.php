@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class Penjualan extends Model
 {
     protected $table = "penjualans";
-    protected $fillable = ["id_penjualan", "timestamp", "total"];
-
-    public function penjualan()
+    protected $primaryKey = 'id_penjualan'; 
+    protected $fillable = ["timestamp", "total"]; 
+    
+    public function detailPenjualan()
     {
-        return $this->hasMany(Detail_Penjualan::class, 'id_penjualan', 'id_penjualan');
+        return $this->hasMany(DetailPenjualan::class, 'id_penjualan', 'id_penjualan');
     }
 }

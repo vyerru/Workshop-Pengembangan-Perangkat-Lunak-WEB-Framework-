@@ -25,7 +25,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-8">
         <div class="card">
             <div class="card-body">
@@ -33,7 +33,12 @@
                 <table class="table table-bordered" id="table-cart">
                     <thead>
                         <tr>
-                            <th>Kode</th><th>Nama</th><th>Harga</th><th>Jumlah</th><th>Subtotal</th><th>Aksi</th>
+                            <th>Kode</th>
+                            <th>Nama</th>
+                            <th>Harga</th>
+                            <th>Jumlah</th>
+                            <th>Subtotal</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -48,69 +53,74 @@
 </div>
 @endsection
 
-@section('scripts')
+@push('page-scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-$(document).ready(function() {
-    let cart = [];
+    $(document).ready(function() {
+        let cart = [];
 
-    // Fitur Enter untuk mencari data
-    $('#kode').on('keypress', function(e) {
-        if (e.which === 13) {
-            let id = $(this).val();
-            // Loading spinner logic
-            let originalText = $('#kode').val();
-            $('#kode').prop('disabled', true);
-            
-            $.ajax({
-                url: `/pos/barang/${id}`,
-                type: 'GET',
-                success: function(response) {
-                    let b = response.data;
-                    $('#nama').val(b.nama);
-                    $('#harga').val(b.harga);
-                    $('#jumlah').val(1);
-                    $('#btn-tambah').prop('disabled', false); // Aktifkan tombol tambah
-                },
-                error: function(xhr) {
-                    Swal.fire('Error', 'Barang tidak ditemukan', 'error');
-                    resetForm();
-                },
-                complete: function() {
-                    $('#kode').prop('disabled', false).focus();
-                }
-            });
-        }
-    });
+        // Fitur Enter untuk mencari data
+        $('#kode').on('keypress', function(e) {
+            if (e.which === 13) {
+                let id = $(this).val();
+                // Loading spinner logic
+                let originalText = $('#kode').val();
+                $('#kode').prop('disabled', true);
 
-    $('#btn-tambah').click(function() {
-        let item = {
-            id_barang: $('#kode').val(),
-            nama: $('#nama').val(),
-            harga: parseInt($('#harga').val()),
-            jumlah: parseInt($('#jumlah').val()),
-        };
-        item.subtotal = item.harga * item.jumlah;
+                $.ajax({
+                    url: `/pos/barang/${id}`,
+                    type: 'GET',
+                    success: function(response) {
+                        let b = response.data;
+                        $('#nama').val(b.nama);
+                        $('#harga').val(b.harga);
+                        $('#jumlah').val(1);
+                        $('#btn-tambah').prop('disabled', false); // Aktifkan tombol tambah
+                    },
+                    error: function(xhr) {
+                        // Tangkap pesan spesifik dari controller atau server
+                        let errorMessage = xhr.responseJSON && xhr.responseJSON.message ?
+                            xhr.responseJSON.message :
+                            'Terjadi kesalahan pada server (Error 500)';
 
-        if (item.jumlah > 0) {
-            let existingItem = cart.find(x => x.id_barang === item.id_barang);
-            if (existingItem) {
-                existingItem.jumlah += item.jumlah; // Jika ada, update jumlah & subtotal
-                existingItem.subtotal = existingItem.jumlah * existingItem.harga;
-            } else {
-                cart.push(item);
+                        Swal.fire('Error', errorMessage, 'error');
+                        resetForm();
+                    },
+                    complete: function() {
+                        $('#kode').prop('disabled', false).focus();
+                    }
+                });
             }
-            renderCart();
-            resetForm();
-        }
-    });
+        });
 
-    function renderCart() {
-        let html = '';
-        let total = 0;
-        cart.forEach((item, index) => {
-            total += item.subtotal;
-            html += `<tr>
+        $('#btn-tambah').click(function() {
+            let item = {
+                id_barang: $('#kode').val(),
+                nama: $('#nama').val(),
+                harga: parseInt($('#harga').val()),
+                jumlah: parseInt($('#jumlah').val()),
+            };
+            item.subtotal = item.harga * item.jumlah;
+
+            if (item.jumlah > 0) {
+                let existingItem = cart.find(x => x.id_barang === item.id_barang);
+                if (existingItem) {
+                    existingItem.jumlah += item.jumlah; // Jika ada, update jumlah & subtotal
+                    existingItem.subtotal = existingItem.jumlah * existingItem.harga;
+                } else {
+                    cart.push(item);
+                }
+                renderCart();
+                resetForm();
+            }
+        });
+
+        function renderCart() {
+            let html = '';
+            let total = 0;
+            cart.forEach((item, index) => {
+                total += item.subtotal;
+                html += `<tr>
                 <td>${item.id_barang}</td>
                 <td>${item.nama}</td>
                 <td>${item.harga}</td>
@@ -118,65 +128,68 @@ $(document).ready(function() {
                 <td>${item.subtotal}</td>
                 <td><button class="btn btn-danger btn-sm btn-hapus" data-index="${index}">Hapus</button></td>
             </tr>`;
-        });
-        $('#table-cart tbody').html(html);
-        $('#label-total').text(total);
-        $('#btn-bayar').prop('disabled', cart.length === 0);
-    }
-
-    function resetForm() {
-        $('#kode').val(''); $('#nama').val(''); $('#harga').val('');
-        $('#jumlah').val(1); $('#btn-tambah').prop('disabled', true);
-    }
-
-    // Update jika jumlah di table diganti
-    $(document).on('change', '.qty-edit', function() {
-        let idx = $(this).data('index');
-        let val = parseInt($(this).val());
-        if (val > 0) {
-            cart[idx].jumlah = val;
-            cart[idx].subtotal = val * cart[idx].harga;
-            renderCart();
+            });
+            $('#table-cart tbody').html(html);
+            $('#label-total').text(total);
+            $('#btn-bayar').prop('disabled', cart.length === 0);
         }
-    });
 
-    // Hapus baris dari table
-    $(document).on('click', '.btn-hapus', function() {
-        let idx = $(this).data('index');
-        cart.splice(idx, 1);
-        renderCart();
-    });
+        function resetForm() {
+            $('#kode').val('');
+            $('#nama').val('');
+            $('#harga').val('');
+            $('#jumlah').val(1);
+            $('#btn-tambah').prop('disabled', true);
+        }
 
-    // Submit Pembayaran dengan AJAX & Spinner
-    $('#btn-bayar').click(function() {
-        let btn = $(this);
-        let originalText = btn.text();
-        // Cegah double submit dengan loading spinner
-        btn.html('<span class="spinner-border spinner-border-sm"></span> Processing...').prop('disabled', true);
-
-        let payload = {
-            _token: '{{ csrf_token() }}',
-            total: parseInt($('#label-total').text()),
-            items: cart
-        };
-
-        $.ajax({
-            url: '/pos/store',
-            type: 'POST',
-            data: payload,
-            success: function(response) {
-                Swal.fire('Success!', response.message, 'success');
-                cart = []; // Kosongi keranjang
+        // Update jika jumlah di table diganti
+        $(document).on('change', '.qty-edit', function() {
+            let idx = $(this).data('index');
+            let val = parseInt($(this).val());
+            if (val > 0) {
+                cart[idx].jumlah = val;
+                cart[idx].subtotal = val * cart[idx].harga;
                 renderCart();
-            },
-            error: function(xhr) {
-                Swal.fire('Error!', 'Gagal menyimpan transaksi', 'error');
-            },
-            complete: function() {
-                btn.html(originalText).prop('disabled', cart.length === 0);
             }
         });
+
+        // Hapus baris dari table
+        $(document).on('click', '.btn-hapus', function() {
+            let idx = $(this).data('index');
+            cart.splice(idx, 1);
+            renderCart();
+        });
+
+        // Submit Pembayaran dengan AJAX & Spinner
+        $('#btn-bayar').click(function() {
+            let btn = $(this);
+            let originalText = btn.text();
+            // Cegah double submit dengan loading spinner
+            btn.html('<span class="spinner-border spinner-border-sm"></span> Processing...').prop('disabled', true);
+
+            let payload = {
+                total: parseInt($('#label-total').text()),
+                items: cart
+            };
+
+            $.ajax({
+                url: '/pos/store',
+                type: 'POST',
+                data: JSON.stringify(payload),
+                contentType: 'application/json',
+                success: function(response) {
+                    Swal.fire('Success!', response.message, 'success');
+                    cart = []; // Kosongi keranjang
+                    renderCart();
+                },
+                error: function(xhr) {
+                    Swal.fire('Error!', 'Gagal menyimpan transaksi', 'error');
+                },
+                complete: function() {
+                    btn.html(originalText).prop('disabled', cart.length === 0);
+                }
+            });
+        });
     });
-});
 </script>
-@endsection
+@endpush

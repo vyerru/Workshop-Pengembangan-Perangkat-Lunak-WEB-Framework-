@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Barang; // Sesuaikan dengan nama model barang Anda
 use App\Models\Penjualan;
-use App\Models\Detail_Penjualan;
+use App\Models\DetailPenjualan;
 use Illuminate\Support\Facades\DB;
 
 class PosController extends Controller
@@ -15,7 +15,7 @@ class PosController extends Controller
     // Mengambil data barang
     public function getBarang($id)
     {
-        $barang = barang::where('id_barang', $id)->first();
+        $barang = Barang::where('id_barang', $id)->first();
         if ($barang) {
             return response()->json(['status' => 'success', 'data' => $barang]);
         }
@@ -32,7 +32,7 @@ class PosController extends Controller
             ]);
 
             foreach ($request->items as $item) {
-                Detail_Penjualan::create([
+                DetailPenjualan::create([
                     'id_penjualan' => $penjualan->id_penjualan,
                     'id_barang' => $item['id_barang'],
                     'jumlah' => $item['jumlah'],
