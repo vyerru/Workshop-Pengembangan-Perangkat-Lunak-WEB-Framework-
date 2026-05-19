@@ -274,7 +274,7 @@
             html += `
                 <div class="d-flex align-items-start mb-2 pb-2 border-bottom">
                     <div class="flex-grow-1 mr-2">
-                        <div class="font-weight-semibold" style="font-size:0.88rem;">${item.nama}</div>
+                        <div class="font-weight-semibold" style="font-size:0.88rem;">${item.nama_menu}</div>
                         <div class="text-muted" style="font-size:0.82rem;">Rp ${formatRupiah(item.harga)} / item</div>
                         <div class="d-flex align-items-center mt-1">
                             <button class="btn btn-outline-secondary btn-xs btn-qty-minus" data-index="${index}" style="padding:1px 7px;">-</button>
@@ -402,13 +402,24 @@
             if (response.data.status === 'success') {
                 Swal.fire({
                     title: 'Pembayaran Berhasil!',
-                    text: 'Pesanan Anda telah Lunas.',
+                    // Suntikkan ID Pesanan dan QR Code dari response server ke dalam HTML SweetAlert
+                    html: `
+                <p>Pesanan Anda telah Lunas.</p>
+                <h4 style="font-weight:bold;">${response.data.id_pesanan}</h4>
+                <div style="margin-top: 15px; display: flex; justify-content: center;">
+                    ${response.data.qr_html}
+                </div>
+                <p style="font-size: 12px; color: #777; margin-top: 10px;">Scan QR ini untuk validasi</p>
+            `,
                     icon: 'success',
-                    confirmButtonText: 'Tutup'
-                }).then(() => {
-                    cart = []; // Kosongkan keranjang
-                    renderCart();
-                    window.location.reload(); // Refresh halaman
+                    confirmButtonText: 'Tutup & Lanjutkan',
+                    allowOutsideClick: false // Paksa kasir menekan tombol tutup setelah scan
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        cart = []; // Kosongkan keranjang
+                        renderCart();
+                        window.location.reload(); // Refresh halaman HANYA setelah QR selesai dilihat/di-scan
+                    }
                 });
             } else {
                 Swal.fire('Kegagalan Sistem', 'Gagal menyimpan pesanan.', 'error');

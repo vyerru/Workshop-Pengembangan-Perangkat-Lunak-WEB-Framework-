@@ -18,6 +18,7 @@ use App\Http\Controllers\WilayahController;
 use App\Http\Controllers\Canteen\VendorMenuController;
 use App\Http\Controllers\Canteen\OrderController;
 use App\Http\Controllers\Canteen\VendorDashboardController;
+use App\Http\Controllers\CustomerController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -43,10 +44,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/cetak/undangan', [pdfController::class, 'cetakUndangan'])->name('cetak.undangan');
     Route::post('/barang/cetak-label', [BarangController::class, 'cetakLabel'])->name('barang.cetak_label');
 
-    Route::get('/wilayah/ajax', function () {
+    Route::get('/wilayah/data-asinkron', function () {
         return view('wilayah.ajax');
     })->name('wilayah.ajax');
-    Route::get('/wilayah/axios', function () {
+    Route::get('/wilayah/data-asinkron-modern', function () {
         return view('wilayah.axios');
     })->name('wilayah.axios');
     Route::get('/wilayah/provinsi', [WilayahController::class, 'provinsi']);
@@ -62,13 +63,16 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:customer'])->prefix('canteen')->name('canteen.')->group(function () {
-    Route::get('/pos', [OrderController::class, 'index'])->name('pos');
+    Route::get('/pesanan', [OrderController::class, 'index'])->name('pesanan');
 
     // Rute untuk Axios fetch data
-    Route::get('/pos/menus/{vendor_id}', [OrderController::class, 'getMenus'])->name('menus');
+    Route::get('/pesanan/menus/{vendor_id}', [OrderController::class, 'getMenus'])->name('menus');
 
     // Rute POST untuk submit keranjang
     Route::post('/checkout', [OrderController::class, 'checkout'])->name('checkout');
+    Route::get('/customer/satu', [CustomerController::class, 'customerSatu'])->name('customer.satu');
+    Route::get('/customer/dua', [CustomerController::class, 'customerDua'])->name('customer.dua');
+    Route::post('/customer', [CustomerController::class, 'store'])->name('customer.store');
 });
 
 Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->group(function () {

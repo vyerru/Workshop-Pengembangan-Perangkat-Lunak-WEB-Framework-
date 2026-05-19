@@ -11,6 +11,7 @@ use App\Models\Pesanan;
 use App\Models\DetailPesanan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class OrderController extends Controller
 {
@@ -130,9 +131,13 @@ class OrderController extends Controller
 
         DB::commit();
 
+        $qrSvg = QrCode::size(150)->generate($pesanan->kode_pesanan);
+
         return response()->json([
             'status' => 'success',
-            'message' => 'Pembayaran berhasil disimulasikan. Pesanan Lunas.'
+            'message' => 'Pembayaran berhasil disimulasikan. Pesanan Lunas.',
+            'id_pesanan' => $pesanan->kode_pesanan, 
+            'qr_html' => (string) $qrSvg 
         ]);
 
     } catch (\Exception $e) {
