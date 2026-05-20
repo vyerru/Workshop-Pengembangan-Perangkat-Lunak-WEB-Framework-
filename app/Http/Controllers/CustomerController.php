@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Customer;
+use App\Models\Pesanan;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -21,6 +22,16 @@ class CustomerController extends Controller
     public function customerDua()
     {
         return view('customer.customer2'); 
+    }
+
+    public function history()
+    {
+        $pesanans = Pesanan::with('detailPesanans.menu')
+            ->where('user_id', auth()->id())
+            ->latest()
+            ->get();
+
+        return view('canteen.riwayat', compact('pesanans'));
     }
 
     /**

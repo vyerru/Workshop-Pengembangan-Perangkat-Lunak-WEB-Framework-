@@ -154,7 +154,7 @@
         showState('loading');
 
         try {
-            const response = await axios.get(`/canteen/pos/menus/${vendorId}`);
+            const response = await axios.get(`/canteen/pesanan/menus/${vendorId}`);
             const menus = response.data.data;
 
             if (!menus || menus.length === 0) {

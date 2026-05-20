@@ -9,9 +9,8 @@
           </div>
           <div class="nav-profile-text d-flex flex-column">
             <span class="font-weight-bold mb-2">{{ auth()->user()->name ?? 'Guest' }}</span>
-            <span class="text-secondary text-small">Project Manager</span>
+            <span class="text-secondary text-small">{{ ucfirst(auth()->user()->role ?? 'guest') }}</span>
           </div>
-          <i class="mdi mdi-bookmark-check text-success nav-profile-badge"></i>
         </a>
       </li>
       <li class="nav-item {{ request()->is('home') ? 'active' : '' }}">
@@ -33,10 +32,22 @@
         </a>
       </li>
       <li class="nav-item {{ request()->is('barang*') ? 'active' : '' }}">
-        <a class="nav-link" href="{{ url('barang') }}">
+        <a class="nav-link" data-bs-toggle="collapse" href="#barang-menu"
+          aria-expanded="{{ request()->is('barang*') ? 'true' : 'false' }}"
+          aria-controls="barang-menu">
           <span class="menu-title">Barang</span>
-          <i class="mdi mdi-package-variant menu-icon"></i>
+          <i class="menu-arrow"></i>
         </a>
+        <div class="collapse {{ request()->is('barang*') ? 'show' : '' }}" id="barang-menu">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item {{ request()->is('barang') || request()->is('barang?*') ? 'active' : '' }}">
+              <a class="nav-link" href="{{ url('barang') }}">Daftar Barang</a>
+            </li>
+            <li class="nav-item {{ request()->is('barang/scan') ? 'active' : '' }}">
+              <a class="nav-link" href="{{ route('barang.scan') }}">Scan Barcode</a>
+            </li>
+          </ul>
+        </div>
       </li>
       <li class="nav-item {{ request()->is('cetak/sertifikat') ? 'active' : '' }}">
         <a class="nav-link" href="{{ url('cetak/sertifikat') }}">
@@ -89,18 +100,23 @@
         </div>
       </li>
       @if(Auth::check() && Auth::user()->role === 'vendor')
-      <li class="nav-item nav-category">Menu Vendor</li>
-      <li class="nav-item">
-        <a class="nav-link" href="{{ route('vendor.dashboard') }}">
-          <span class="menu-title">Dashboard Vendor</span>
-          <i class="mdi mdi-television menu-icon"></i>
+      <li class="nav-item {{ request()->is('vendor*') ? 'active' : '' }}">
+        <a class="nav-link" data-bs-toggle="collapse" href="#vendor-menu"
+          aria-expanded="{{ request()->is('vendor*') ? 'true' : 'false' }}"
+          aria-controls="vendor-menu">
+          <span class="menu-title">Menu Vendor</span>
+          <i class="menu-arrow"></i>
         </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="{{ route('vendor.menus.index') }}">
-          <span class="menu-title">Kelola Menu</span>
-          <i class="mdi mdi-food menu-icon"></i>
-        </a>
+        <div class="collapse {{ request()->is('vendor*') ? 'show' : '' }}" id="vendor-menu">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item {{ request()->is('vendor/dashboard') ? 'active' : '' }}">
+              <a class="nav-link" href="{{ route('vendor.dashboard') }}">Dashboard</a>
+            </li>
+            <li class="nav-item {{ request()->is('vendor/menus*') ? 'active' : '' }}">
+              <a class="nav-link" href="{{ route('vendor.menus.index') }}">Kelola Menu</a>
+            </li>
+          </ul>
+        </div>
       </li>
       @endif
 
@@ -116,6 +132,9 @@
           <ul class="nav flex-column sub-menu">
             <li class="nav-item {{ request()->is('canteen/pesanan') ? 'active' : '' }}">
               <a class="nav-link" href="{{ route('canteen.pesanan') }}">Pesan Makanan</a>
+            </li>
+            <li class="nav-item {{ request()->is('canteen/riwayat') ? 'active' : '' }}">
+              <a class="nav-link" href="{{ route('canteen.riwayat') }}">Riwayat Pesanan</a>
             </li>
             <li class="nav-item {{ request()->is('canteen/customer/satu') ? 'active' : '' }}">
               <a class="nav-link" href="{{ route('canteen.customer.satu') }}">Customer Satu</a>

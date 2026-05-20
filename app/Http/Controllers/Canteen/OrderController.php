@@ -28,10 +28,6 @@ class OrderController extends Controller
     {
         // Pastikan vendor ada, lalu ambil menu-menunya
         $menus = Menu::where('vendor_id', $vendor_id)->get(); // Ingat, tabel menu Anda berelasi dengan user_id (vendor auth), bukan ID di tabel vendors. Sesuaikan dengan struktur relasi Anda jika berbeda.
-        
-        // JIKA Anda mengikat menu ke tabel vendors (vendor_id), gunakan ini:
-        // $menus = Menu::where('vendor_id', $vendor_id)->get();
-
         return response()->json([
             'status' => 'success',
             'data' => $menus
@@ -72,13 +68,15 @@ class OrderController extends Controller
         }
 
         // 3. Buat Record Pesanan
-       $nama_customer = auth()->check() ? auth()->user()->name : 'Guest_' . str_pad(rand(1, 9999), 5, '0', STR_PAD_LEFT);
+       $nama_customer = auth()->user()->name;
         $kode_pesanan = 'ORD-' . strtoupper(Str::random(5)) . '-' . time();
         
         $pesanan = Pesanan::create([
+            'user_id' => auth()->id(),
             'nama' => $nama_customer,
             'vendor_id' => $vendor_id,
             'kode_pesanan' => $kode_pesanan,
+            'qr_token' => Str::random(40),
             'total' => $total_harga,
             'status_bayar' => 1, // 1 = Lunas
             'metode_bayar' => 'QRIS',
@@ -131,7 +129,7 @@ class OrderController extends Controller
 
         DB::commit();
 
-        $qrSvg = QrCode::size(150)->generate($pesanan->kode_pesanan);
+        $qrSvg = QrCode::size(150)->generate($pesanan->qr_token);
 
         return response()->json([
             'status' => 'success',

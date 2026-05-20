@@ -90,6 +90,32 @@ class BarangController extends Controller
             ->all();
     }
 
+    public function scan(): View
+    {
+        return view('barang.scan');
+    }
+
+    public function apiShow($barcode)
+    {
+        $barang = Barang::where('id_barang', $barcode)->first();
+
+        if (!$barang) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Barang tidak ditemukan.',
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'id_barang' => $barang->id_barang,
+                'nama_barang' => $barang->nama,
+                'harga' => $barang->harga,
+            ],
+        ]);
+    }
+
     public function cetakLabel(Request $request)
     {
         $request->validate([

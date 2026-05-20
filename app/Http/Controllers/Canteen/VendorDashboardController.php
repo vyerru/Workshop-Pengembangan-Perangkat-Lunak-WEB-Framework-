@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Canteen;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pesanan;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class VendorDashboardController extends Controller
@@ -24,5 +25,40 @@ class VendorDashboardController extends Controller
             ->get();
 
         return view('vendor.dashboard', compact('pesanans'));
+    }
+
+    public function verifyQr(Request $request)
+    {
+        $request->validate([
+            'qr_token' => 'required|string|max:40',
+        ]);
+
+        $pesanan = Pesanan::with('detailPesanans.menu')
+            ->where('qr_token', $request->qr_token)
+            ->first();
+
+        if (!$pesanan) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'QR Token tidak valid atau pesanan tidak ditemukan.',
+            ], 404);
+        }
+
+        $vendor = Auth::user()->vendor;
+
+        if (!$vendor || $pesanan->vendor_id !== $vendor->id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Pesanan ini bukan milik vendor Anda.',
+            ], 403);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'pesanan' => $pesanan,
+                'detail_pesanan' => $pesanan->detailPesanans,
+            ],
+        ]);
     }
 }

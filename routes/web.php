@@ -42,6 +42,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/cetak/sertifikat', [pdfController::class, 'cetakSertifikat'])->name('cetak.sertifikat');
     Route::get('/cetak/undangan', [pdfController::class, 'cetakUndangan'])->name('cetak.undangan');
+    Route::get('/barang/scan', [BarangController::class, 'scan'])->name('barang.scan');
+    Route::get('/barang/api/{barcode}', [BarangController::class, 'apiShow'])->name('barang.api');
     Route::post('/barang/cetak-label', [BarangController::class, 'cetakLabel'])->name('barang.cetak_label');
 
     Route::get('/wilayah/data-asinkron', function () {
@@ -73,10 +75,12 @@ Route::middleware(['auth', 'role:customer'])->prefix('canteen')->name('canteen.'
     Route::get('/customer/satu', [CustomerController::class, 'customerSatu'])->name('customer.satu');
     Route::get('/customer/dua', [CustomerController::class, 'customerDua'])->name('customer.dua');
     Route::post('/customer', [CustomerController::class, 'store'])->name('customer.store');
+    Route::get('/riwayat', [CustomerController::class, 'history'])->name('riwayat');
 });
 
 Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->group(function () {
     Route::get('/dashboard', [VendorDashboardController::class, 'index'])->name('dashboard');
+    Route::post('/verify-qr', [VendorDashboardController::class, 'verifyQr'])->name('verify-qr');
 
     // Rute CRUD Menu (Hanya Vendor)
     Route::resource('menus', VendorMenuController::class)->except(['show']);
