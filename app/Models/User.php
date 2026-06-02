@@ -20,6 +20,7 @@ class User extends Authenticatable
     const ROLE_ADMIN = 'admin';
     const ROLE_VENDOR = 'vendor';
     const ROLE_CUSTOMER = 'customer';
+    const ROLE_SALES = 'sales';
     protected $fillable = [
         'name',
         'email',
@@ -28,10 +29,6 @@ class User extends Authenticatable
         'otp',
         'role',
     ];
-
-    public function hasRole(string $role): bool {
-        return $this->role === $role;
-    }
 
     /**
      * The attributes that should be hidden for serialization.
@@ -57,6 +54,10 @@ class User extends Authenticatable
     }
 
     public function vendor() {
-    return $this->hasOne(Vendor::class, 'user_id'); 
-}
+        return $this->hasOne(Vendor::class, 'user_id');
+    }
+
+    public function hasRole(string $role): bool {
+        return $this->role === $role;
+    }
 }

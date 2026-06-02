@@ -19,6 +19,8 @@ use App\Http\Controllers\Canteen\VendorMenuController;
 use App\Http\Controllers\Canteen\OrderController;
 use App\Http\Controllers\Canteen\VendorDashboardController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\Geolocation\TokoController;
+use App\Http\Controllers\Geolocation\KunjunganController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -84,4 +86,30 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
 
     // Rute CRUD Menu (Hanya Vendor)
     Route::resource('menus', VendorMenuController::class)->except(['show']);
+});
+
+// =====================
+// MODUL GEOLOCATION
+// =====================
+
+Route::middleware(['auth', 'role:admin'])->prefix('geolocation')->name('geolocation.')->group(function () {
+    Route::get('/toko', [TokoController::class, 'index'])->name('toko.index');
+    Route::get('/toko/create', [TokoController::class, 'create'])->name('toko.create');
+    Route::post('/toko', [TokoController::class, 'store'])->name('toko.store');
+    Route::get('/toko/{toko}/edit', [TokoController::class, 'edit'])->name('toko.edit');
+    Route::put('/toko/{toko}', [TokoController::class, 'update'])->name('toko.update');
+    Route::delete('/toko/{toko}', [TokoController::class, 'destroy'])->name('toko.destroy');
+    Route::get('/toko/{toko}/barcode', [TokoController::class, 'cetakBarcode'])->name('toko.barcode');
+    Route::get('/toko/{toko}/qrcode', [TokoController::class, 'cetakQrCode'])->name('toko.qrcode');
+});
+
+Route::middleware(['auth', 'role:sales'])->prefix('geolocation')->name('geolocation.')->group(function () {
+    Route::get('/kunjungan', [KunjunganController::class, 'index'])->name('kunjungan.index');
+    Route::get('/kunjungan/scan', [KunjunganController::class, 'scan'])->name('kunjungan.scan');
+    Route::get('/kunjungan/scan-barcode', [KunjunganController::class, 'scanBarcode'])->name('kunjungan.scan-barcode');
+    Route::get('/kunjungan/toko/{barcode_token}', [KunjunganController::class, 'getTokoByBarcode'])->name('kunjungan.toko-by-barcode');
+    Route::post('/kunjungan', [KunjunganController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('kunjungan.store');
+    Route::get('/kunjungan/riwayat', [KunjunganController::class, 'riwayat'])->name('kunjungan.riwayat');
 });

@@ -99,7 +99,55 @@
           </ul>
         </div>
       </li>
-      @if(Auth::check() && Auth::user()->role === 'vendor')
+      @if(Auth::check() && Auth::user()->hasRole('admin'))
+      <li class="nav-item {{ request()->is('geolocation/toko*') ? 'active' : '' }}">
+        <a class="nav-link" data-bs-toggle="collapse" href="#geolocation-admin-menu"
+          aria-expanded="{{ request()->is('geolocation/toko*') ? 'true' : 'false' }}"
+          aria-controls="geolocation-admin-menu">
+          <span class="menu-title">Geolocation</span>
+          <i class="menu-arrow"></i>
+        </a>
+        <div class="collapse {{ request()->is('geolocation/toko*') ? 'show' : '' }}" id="geolocation-admin-menu">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item {{ request()->is('geolocation/toko') || request()->is('geolocation/toko?*') ? 'active' : '' }}">
+              <a class="nav-link" href="{{ route('geolocation.toko.index') }}">Manajemen Toko</a>
+            </li>
+            <li class="nav-item {{ request()->is('geolocation/toko/create') ? 'active' : '' }}">
+              <a class="nav-link" href="{{ route('geolocation.toko.create') }}">Tambah Toko</a>
+            </li>
+          </ul>
+        </div>
+      </li>
+      @endif
+
+      @if(Auth::check() && Auth::user()->hasRole('sales'))
+      <li class="nav-item {{ request()->is('geolocation/kunjungan*') ? 'active' : '' }}">
+        <a class="nav-link" data-bs-toggle="collapse" href="#geolocation-sales-menu"
+          aria-expanded="{{ request()->is('geolocation/kunjungan*') ? 'true' : 'false' }}"
+          aria-controls="geolocation-sales-menu">
+          <span class="menu-title">Kunjungan Toko</span>
+          <i class="menu-arrow"></i>
+        </a>
+        <div class="collapse {{ request()->is('geolocation/kunjungan*') ? 'show' : '' }}" id="geolocation-sales-menu">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item {{ request()->is('geolocation/kunjungan') ? 'active' : '' }}">
+              <a class="nav-link" href="{{ route('geolocation.kunjungan.index') }}">Daftar Toko</a>
+            </li>
+            <li class="nav-item {{ request()->is('geolocation/kunjungan/scan-barcode') ? 'active' : '' }}">
+              <a class="nav-link" href="{{ route('geolocation.kunjungan.scan-barcode') }}">Scan Barcode</a>
+            </li>
+            <li class="nav-item {{ request()->is('geolocation/kunjungan/scan') ? 'active' : '' }}">
+              <a class="nav-link" href="{{ route('geolocation.kunjungan.scan') }}">Scan QR Code</a>
+            </li>
+            <li class="nav-item {{ request()->is('geolocation/kunjungan/riwayat') ? 'active' : '' }}">
+              <a class="nav-link" href="{{ route('geolocation.kunjungan.riwayat') }}">Riwayat Kunjungan</a>
+            </li>
+          </ul>
+        </div>
+      </li>
+      @endif
+
+      @if(Auth::check() && Auth::user()->hasRole('vendor'))
       <li class="nav-item {{ request()->is('vendor*') ? 'active' : '' }}">
         <a class="nav-link" data-bs-toggle="collapse" href="#vendor-menu"
           aria-expanded="{{ request()->is('vendor*') ? 'true' : 'false' }}"
@@ -120,7 +168,7 @@
       </li>
       @endif
 
-      @if(Auth::check() && Auth::user()->role === 'customer')
+      @if(Auth::check() && Auth::user()->hasRole('customer'))
       <li class="nav-item {{ request()->is('canteen*') ? 'active' : '' }}">
         <a class="nav-link" data-bs-toggle="collapse" href="#canteen-menu"
           aria-expanded="{{ request()->is('canteen*') ? 'true' : 'false' }}"
