@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Pesanan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class VendorDashboardController extends Controller
 {
@@ -17,14 +18,19 @@ class VendorDashboardController extends Controller
             abort(403, 'Profil Vendor tidak ditemukan.');
         }
 
-        // Kritis: Kueri terisolasi dengan Eager Loading untuk mencegah N+1 Problem
-        $pesanans = Pesanan::with('detailPesanans.menu') // Memuat relasi tabel anak
+        $pesanans = Pesanan::with('detailPesanans.menu')
             ->where('vendor_id', $vendor->id)
-            ->where('status_bayar', 1) // 
+            ->where('status_bayar', 1)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('vendor.dashboard', compact('pesanans'));
+        $antrianHariIni = Pesanan::with('detailPesanans.menu')
+            ->forVendorToday($vendor->id)
+            ->where('status_bayar', 1)
+            ->orderBy('nomor_antrian', 'asc')
+            ->get();
+
+        return view('vendor.dashboard', compact('pesanans', 'antrianHariIni'));
     }
 
     public function verifyQr(Request $request)
@@ -60,5 +66,118 @@ class VendorDashboardController extends Controller
                 'detail_pesanan' => $pesanan->detailPesanans,
             ],
         ]);
+    }
+
+    public function queue()
+    {
+        $vendor = Auth::user()->vendor;
+
+        if (!$vendor) {
+            abort(403, 'Profil Vendor tidak ditemukan.');
+        }
+
+        $antrians = Pesanan::with('detailPesanans.menu')
+            ->forVendorToday($vendor->id)
+            ->where('status_bayar', 1)
+            ->orderBy('nomor_antrian', 'asc')
+            ->get();
+
+        if (request()->ajax()) {
+            return view('vendor.antrian-list', compact('antrians'))->render();
+        }
+
+        return view('vendor.antrian', compact('antrians'));
+    }
+
+    public function papanAntrian()
+    {
+        $vendor = Auth::user()->vendor;
+
+        if (!$vendor) {
+            abort(403, 'Profil Vendor tidak ditemukan.');
+        }
+
+        return view('vendor.papan-antrian', ['vendorId' => $vendor->id]);
+    }
+
+    public function updateStatus(Request $request, Pesanan $pesanan)
+    {
+        $request->validate([
+            'status' => 'required|in:pending,diproses,siap_dipanggil,selesai',
+        ]);
+
+        $vendor = Auth::user()->vendor;
+
+        if (!$vendor || $pesanan->vendor_id !== $vendor->id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Pesanan ini bukan milik vendor Anda.',
+            ], 403);
+        }
+
+        $pesanan->update(['status_antrian' => $request->status]);
+
+        if ($request->status === 'siap_dipanggil') {
+            $this->generateTts($pesanan);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Status antrian berhasil diperbarui.',
+            'data' => [
+                'id' => $pesanan->id,
+                'nomor_antrian' => $pesanan->nomor_antrian,
+                'status_antrian' => $pesanan->status_antrian,
+            ],
+        ]);
+    }
+
+    public function panggilUlang(Pesanan $pesanan)
+    {
+        $vendor = Auth::user()->vendor;
+
+        if (!$vendor || $pesanan->vendor_id !== $vendor->id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Pesanan ini bukan milik vendor Anda.',
+            ], 403);
+        }
+
+        $pesanan->touch();
+        $this->generateTts($pesanan);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Pemanggilan ulang berhasil dikirim.',
+            'data' => [
+                'id' => $pesanan->id,
+                'nomor_antrian' => $pesanan->nomor_antrian,
+                'updated_at' => $pesanan->updated_at,
+            ],
+        ]);
+    }
+
+    private function generateTts(Pesanan $pesanan)
+    {
+        $texts = [
+            'Nomor antrian ' . $pesanan->nomor_antrian . ', ' . $pesanan->nama,
+            'Nomor antrian ' . $pesanan->nomor_antrian,
+        ];
+
+        foreach ($texts as $text) {
+            $hash = md5($text);
+            $path = 'tts/' . $hash . '.mp3';
+
+            if (Storage::disk('public')->exists($path)) {
+                continue;
+            }
+
+            $escaped = escapeshellarg($text);
+            $output = @shell_exec("gtts-cli {$escaped} --lang id --output - 2>/dev/null");
+
+            if ($output !== null && strlen($output) >= 100) {
+                Storage::disk('public')->put($path, $output);
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Customer;
 use App\Mail\OtpMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -25,14 +26,23 @@ class LoginCallbackController extends Controller
             return redirect('/login')->with('error', 'Gagal autentikasi Google.');
         }
 
+        $exists = User::where('email', $googleUser->email)->exists();
+
         $user = User::updateOrCreate(
             ['email' => $googleUser->email],
             [
                 'name' => $googleUser->name,
                 'id_google' => $googleUser->id,
-                'password' => $user->password ?? bcrypt(Str::random(16)),
+                'password' => bcrypt(Str::random(16)),
             ]
         );
+
+        if (!$exists && !$user->customer) {
+            Customer::create([
+                'user_id' => $user->id,
+                'nama' => $user->name,
+            ]);
+        }
 
         $otpCode = Str::random(6);
         $user->update(['otp' => $otpCode]);

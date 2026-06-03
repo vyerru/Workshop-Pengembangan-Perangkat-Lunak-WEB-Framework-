@@ -68,8 +68,14 @@ class OrderController extends Controller
         }
 
         // 3. Buat Record Pesanan
-       $nama_customer = auth()->user()->name;
+        $nama_customer = $request->nama ?? auth()->user()->name;
         $kode_pesanan = 'ORD-' . strtoupper(Str::random(5)) . '-' . time();
+
+        // Generate nomor antrian harian per vendor
+        $lastAntrian = Pesanan::where('vendor_id', $vendor_id)
+            ->whereDate('created_at', today())
+            ->max('nomor_antrian');
+        $nomorAntrian = ($lastAntrian ?? 0) + 1;
         
         $pesanan = Pesanan::create([
             'user_id' => auth()->id(),
@@ -80,6 +86,8 @@ class OrderController extends Controller
             'total' => $total_harga,
             'status_bayar' => 1, // 1 = Lunas
             'metode_bayar' => 'QRIS',
+            'nomor_antrian' => $nomorAntrian,
+            'status_antrian' => Pesanan::ANTRIAN_PENDING,
         ]);
 
         // 4. Buat Detail Pesanan
@@ -135,6 +143,7 @@ class OrderController extends Controller
             'status' => 'success',
             'message' => 'Pembayaran berhasil disimulasikan. Pesanan Lunas.',
             'id_pesanan' => $pesanan->kode_pesanan, 
+            'nomor_antrian' => $pesanan->nomor_antrian,
             'qr_html' => (string) $qrSvg 
         ]);
 

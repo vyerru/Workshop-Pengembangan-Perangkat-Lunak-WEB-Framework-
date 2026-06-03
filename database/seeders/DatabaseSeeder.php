@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             UserRoleSeeder::class,
             BarangSeeder::class,
             TokoSeeder::class,
+            RoleProfileSeeder::class,
         ]);
 
         User::factory()->create([

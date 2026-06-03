@@ -18,6 +18,8 @@ use App\Http\Controllers\WilayahController;
 use App\Http\Controllers\Canteen\VendorMenuController;
 use App\Http\Controllers\Canteen\OrderController;
 use App\Http\Controllers\Canteen\VendorDashboardController;
+use App\Http\Controllers\Canteen\QueueStreamController;
+use App\Http\Controllers\Canteen\TtsController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\Geolocation\TokoController;
 use App\Http\Controllers\Geolocation\KunjunganController;
@@ -34,6 +36,22 @@ Route::get('/auth/google/callback', [LoginCallbackController::class, 'callback']
 Route::get('/otp-verify', [LoginCallbackController::class, 'otpView'])->name('otp.view');
 Route::post('/otp-verify', [LoginCallbackController::class, 'otpVerify'])->name('otp.verify');
 Auth::routes();
+
+Route::get('/sse/queue/{vendor}', [QueueStreamController::class, 'stream'])->withoutMiddleware([
+    Illuminate\Cookie\Middleware\EncryptCookies::class,
+    Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+    Illuminate\Session\Middleware\StartSession::class,
+    Illuminate\View\Middleware\ShareErrorsFromSession::class,
+    Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
+]);
+
+Route::get('/tts', [TtsController::class, 'proxy'])->withoutMiddleware([
+    Illuminate\Cookie\Middleware\EncryptCookies::class,
+    Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+    Illuminate\Session\Middleware\StartSession::class,
+    Illuminate\View\Middleware\ShareErrorsFromSession::class,
+    Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
+]);
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
@@ -83,6 +101,12 @@ Route::middleware(['auth', 'role:customer'])->prefix('canteen')->name('canteen.'
 Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->group(function () {
     Route::get('/dashboard', [VendorDashboardController::class, 'index'])->name('dashboard');
     Route::post('/verify-qr', [VendorDashboardController::class, 'verifyQr'])->name('verify-qr');
+
+    // Antrian digital
+    Route::get('/antrian', [VendorDashboardController::class, 'queue'])->name('antrian');
+    Route::get('/papan-antrian', [VendorDashboardController::class, 'papanAntrian'])->name('antrian.display');
+    Route::patch('/pesanan/{pesanan}/status', [VendorDashboardController::class, 'updateStatus'])->name('pesanan.update-status');
+    Route::post('/pesanan/{pesanan}/panggil-ulang', [VendorDashboardController::class, 'panggilUlang'])->name('pesanan.panggil-ulang');
 
     // Rute CRUD Menu (Hanya Vendor)
     Route::resource('menus', VendorMenuController::class)->except(['show']);

@@ -163,6 +163,12 @@
             <li class="nav-item {{ request()->is('vendor/menus*') ? 'active' : '' }}">
               <a class="nav-link" href="{{ route('vendor.menus.index') }}">Kelola Menu</a>
             </li>
+            <li class="nav-item {{ request()->is('vendor/antrian') ? 'active' : '' }}">
+              <a class="nav-link" href="{{ route('vendor.antrian') }}">Antrian Digital</a>
+            </li>
+            <li class="nav-item {{ request()->is('vendor/papan-antrian') ? 'active' : '' }}">
+              <a class="nav-link" href="{{ route('vendor.antrian.display') }}">Papan Antrian</a>
+            </li>
           </ul>
         </div>
       </li>
