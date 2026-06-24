@@ -64,7 +64,8 @@ class QueueStreamController extends Controller
                 flush();
 
                 $tick++;
-                usleep(config('sse.query_interval'));
+                // sleep(config('sse.query_interval'));
+                sleep(1);
             }
         });
 

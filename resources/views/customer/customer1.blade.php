@@ -12,7 +12,7 @@
                     <div id="kamera-container" class="mb-3 text-center">
                         <p class="text-muted small">Alat Tangkap Biometrik (Kamera)</p>
                         
-                        <video id="kamera-video" width="400" height="300" autoplay playsinline style="background:#000; border-radius:8px; border:2px solid #ccc;"></video>
+                        <video id="kamera-video" width="400" height="300" autoplay playsinline style="background:#000; border-radius:8px; border:2px solid #ccc; transform: scaleX(-1);"></video>
                         
                         <canvas id="kamera-canvas" width="400" height="300" style="display:none; background:#ccc; border-radius:8px; border:2px solid #28a745; margin: 0 auto;"></canvas>
                     </div>

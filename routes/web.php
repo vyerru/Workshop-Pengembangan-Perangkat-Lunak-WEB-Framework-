@@ -23,6 +23,7 @@ use App\Http\Controllers\Canteen\TtsController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\Geolocation\TokoController;
 use App\Http\Controllers\Geolocation\KunjunganController;
+use App\Http\Controllers\AbsensiKuliahController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -136,4 +137,9 @@ Route::middleware(['auth', 'role:sales'])->prefix('geolocation')->name('geolocat
         ->middleware('throttle:10,1')
         ->name('kunjungan.store');
     Route::get('/kunjungan/riwayat', [KunjunganController::class, 'riwayat'])->name('kunjungan.riwayat');
+});
+
+Route::middleware(['auth'])->prefix('praktikum')->name('absensi.')->group(function () {
+    Route::get('/absensi-nfc', [AbsensiKuliahController::class, 'index'])->name('nfc.index');
+    Route::post('/absensi-nfc', [AbsensiKuliahController::class, 'store'])->name('nfc.store');
 });

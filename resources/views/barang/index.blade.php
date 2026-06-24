@@ -3,7 +3,6 @@
 @push('styles')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
 <style>
-    /* Style untuk spinner */
     .btn-loading {
         position: relative;
         pointer-events: none;
@@ -64,7 +63,6 @@
                 <small class="text-muted">Maksimal 8 Baris</small>
             </div>
             <div class="col-md-3">
-                <!-- UBAH: Submit button menjadi button biasa dengan onclick -->
                 <button type="button" class="btn btn-success btn-icon-text" id="btnCetakLabel" onclick="submitCetakLabel()">
                     <i class="mdi mdi-printer btn-icon-prepend"></i> 
                     <span class="btn-text">Cetak Tag Harga</span>
@@ -135,7 +133,6 @@
     </div>
 </div>
 
-<!-- MODAL CREATE - DIUBAH -->
 <div class="modal fade" id="createBarangModal" tabindex="-1" role="dialog" aria-labelledby="createBarangModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -168,7 +165,6 @@
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-dismiss="modal" data-bs-dismiss="modal">Batal</button>
-                    <!-- UBAH: Submit button menjadi button biasa -->
                     <button type="button" class="btn btn-gradient-primary" id="btnCreateBarang" onclick="submitCreateBarang()">
                         <span class="btn-text">Create</span>
                         <span class="spinner-border spinner-border-sm" style="display:none;"></span>
@@ -179,7 +175,6 @@
     </div>
 </div>
 
-<!-- MODAL EDIT - DIUBAH -->
 @foreach($barang as $item)
 @php
 $rowKey = $item->{$primaryKey};
@@ -218,7 +213,6 @@ $rowKey = $item->{$primaryKey};
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-dismiss="modal" data-bs-dismiss="modal">Batal</button>
-                    <!-- UBAH: Submit button menjadi button biasa -->
                     <button type="button" class="btn btn-gradient-warning" id="btnEditBarang-{{ $rowKey }}" onclick="submitEditBarang({{ $rowKey }})">
                         <span class="btn-text">Update</span>
                         <span class="spinner-border spinner-border-sm" style="display:none;"></span>
@@ -241,37 +235,27 @@ $rowKey = $item->{$primaryKey};
         $('#tabelBarang').DataTable();
     });
 
-    // ============================================
-    // FUNGSI UNTUK CETAK LABEL
-    // ============================================
     function submitCetakLabel() {
         var form = document.getElementById('formCetakLabel');
         var btn = document.getElementById('btnCetakLabel');
         
-        // 1. Validasi HTML5 - cek apakah ada input required yang kosong
         if (!form.checkValidity()) {
-            // Tampilkan pesan error built-in browser
             form.reportValidity();
             return false;
         }
         
-        // 2. Validasi custom - cek apakah ada checkbox yang dipilih
         var checkboxes = document.querySelectorAll('input[name="barang_ids[]"]:checked');
         if (checkboxes.length === 0) {
             alert('Silahkan pilih minimal 1 barang untuk dicetak!');
             return false;
         }
         
-        // 3. Semua validasi OK, ubah button jadi loading state
         btn.querySelector('.btn-text').style.display = 'none';
         btn.querySelector('.spinner-border').style.display = 'inline-block';
         btn.disabled = true;
         
-        // 4. Submit form (akan buka tab baru karena target="_blank")
         form.submit();
         
-        // 5. Kembalikan button ke state normal setelah 2 detik
-        // (karena form dibuka di tab baru, halaman ini tidak reload)
         setTimeout(function() {
             btn.querySelector('.btn-text').style.display = 'inline';
             btn.querySelector('.spinner-border').style.display = 'none';
@@ -279,47 +263,35 @@ $rowKey = $item->{$primaryKey};
         }, 2000);
     }
 
-    // ============================================
-    // FUNGSI UNTUK CREATE BARANG
-    // ============================================
     function submitCreateBarang() {
         var form = document.getElementById('formCreateBarang');
         var btn = document.getElementById('btnCreateBarang');
         
-        // 1. Validasi HTML5 - cek semua input required
         if (!form.checkValidity()) {
             form.reportValidity();
             return false;
         }
         
-        // 2. Ubah button jadi loading
         btn.querySelector('.btn-text').style.display = 'none';
         btn.querySelector('.spinner-border').style.display = 'inline-block';
         btn.disabled = true;
         
-        // 3. Submit form ke Laravel controller
         form.submit();
     }
 
-    // ============================================
-    // FUNGSI UNTUK EDIT BARANG
-    // ============================================
     function submitEditBarang(id) {
         var form = document.getElementById('formEditBarang-' + id);
         var btn = document.getElementById('btnEditBarang-' + id);
         
-        // 1. Validasi HTML5
         if (!form.checkValidity()) {
             form.reportValidity();
             return false;
         }
         
-        // 2. Ubah button jadi loading
         btn.querySelector('.btn-text').style.display = 'none';
         btn.querySelector('.spinner-border').style.display = 'inline-block';
         btn.disabled = true;
         
-        // 3. Submit form
         form.submit();
     }
 </script>

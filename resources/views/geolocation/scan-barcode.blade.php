@@ -24,6 +24,9 @@
         display: block;
         margin: 0 auto;
     }
+    #reader video {
+        transform: scaleX(-1);
+    }
     #formKunjungan { display: none; }
     #hasilKunjungan { display: none; }
     #lokasiLoading { display: none; }

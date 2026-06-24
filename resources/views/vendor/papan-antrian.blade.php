@@ -238,6 +238,8 @@
             evtSource.addEventListener('queue-update', function(e) {
                 var data = JSON.parse(e.data);
 
+                console.log('Queue update received:', data);
+
                 if (data.length > 0) {
                     var latest = data[data.length - 1];
 

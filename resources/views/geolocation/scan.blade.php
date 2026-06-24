@@ -24,6 +24,9 @@
         display: block;
         margin: 0 auto;
     }
+    #reader video {
+        transform: scaleX(-1);
+    }
     #formKunjungan { display: none; }
     #hasilKunjungan { display: none; }
     #lokasiLoading { display: none; }
@@ -125,7 +128,7 @@
         html5QrCode = new Html5Qrcode("reader");
         html5QrCode.start(
             { facingMode: "environment" },
-            { fps: 10, qrbox: { width: 250, height: 80 } },
+            { fps: 10, qrbox: { width: 250, height: 250 } },
             onScanSuccess
         ).then(function () { scanStarting = false; })
         .catch(function (err) {

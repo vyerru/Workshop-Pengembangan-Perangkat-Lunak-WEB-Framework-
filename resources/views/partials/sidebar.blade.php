@@ -55,6 +55,12 @@
           <i class="mdi mdi-certificate menu-icon"></i>
         </a>
       </li>
+      <li class="nav-item {{ request()->is('praktikum/absensi-nfc') ? 'active' : '' }}">
+        <a class="nav-link" href="{{ route('absensi.nfc.index') }}">
+          <span class="menu-title">Absensi NFC</span>
+          <i class="mdi mdi-wifi menu-icon"></i>
+        </a>
+      </li>
       <li class="nav-item {{ request()->is('cetak/undangan') ? 'active' : '' }}">
         <a class="nav-link" href="{{ url('cetak/undangan') }}">
           <span class="menu-title">Cetak Undangan</span>
