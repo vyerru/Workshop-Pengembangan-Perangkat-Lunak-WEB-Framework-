@@ -54,6 +54,14 @@ Route::get('/tts', [TtsController::class, 'proxy'])->withoutMiddleware([
     Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
 ]);
 
+Route::post('midtrans/callback', [\App\Http\Controllers\Canteen\MidtransCallbackController::class, 'notification'])->withoutMiddleware([
+    Illuminate\Cookie\Middleware\EncryptCookies::class,
+    Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+    Illuminate\Session\Middleware\StartSession::class,
+    Illuminate\View\Middleware\ShareErrorsFromSession::class,
+    Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
+]);
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 

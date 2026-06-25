@@ -84,8 +84,8 @@ class OrderController extends Controller
             'kode_pesanan' => $kode_pesanan,
             'qr_token' => Str::random(40),
             'total' => $total_harga,
-            'status_bayar' => 1, // 1 = Lunas
-            'metode_bayar' => 'QRIS',
+            'status_bayar' => 0, // 0 = pending, menunggu konfirmasi Midtrans
+            'metode_bayar' => null,
             'nomor_antrian' => $nomorAntrian,
             'status_antrian' => Pesanan::ANTRIAN_PENDING,
         ]);
@@ -102,38 +102,29 @@ class OrderController extends Controller
         }
 
         // 5. Konfigurasi Midtrans & Dapatkan Snap Token
-        // \Midtrans\Config::$serverKey = config('midtrans.server_key');
-        // \Midtrans\Config::$isProduction = config('midtrans.is_production');
-        // \Midtrans\Config::$isSanitized = config('midtrans.is_sanitized');
-        // \Midtrans\Config::$is3ds = config('midtrans.is_3ds');
+        \Midtrans\Config::$serverKey = config('midtrans.server_key');
+        \Midtrans\Config::$isProduction = config('midtrans.is_production');
+        \Midtrans\Config::$isSanitized = config('midtrans.is_sanitized');
+        \Midtrans\Config::$is3ds = config('midtrans.is_3ds');
 
-        // \Midtrans\Config::$serverKey = 'SB-Mid-server-doRA1XoMosZ5gmyMwqbtld8u'; 
-        // \Midtrans\Config::$isProduction = false; // Paksa mutlak ke false
-        // \Midtrans\Config::$isSanitized = true;
-        // \Midtrans\Config::$is3ds = true;
+        $params = [
+            'transaction_details' => [
+                'order_id' => $pesanan->kode_pesanan,
+                'gross_amount' => $pesanan->total,
+            ],
+            'customer_details' => [
+                'first_name' => auth()->user()->name,
+                'email' => auth()->user()->email,
+            ],
+            'callbacks' => [
+                'finish' => route('canteen.riwayat'),
+            ],
+        ];
 
-        // if (empty(\Midtrans\Config::$serverKey)) {
-        //      throw new \Exception("DIAGNOSIS FATAL: Server Key terbaca KOSONG (null) oleh Laravel. Cek cache config atau file .env Anda.");
-        // }
-        // if (strpos(\Midtrans\Config::$serverKey, 'SB-Mid-server-') === false) {
-        //      throw new \Exception("DIAGNOSIS FATAL: Format Server Key SALAH. Nilai yang dikirim adalah: " . \Midtrans\Config::$serverKey . ". Seharusnya diawali dengan 'SB-Mid-server-'.");
-        // }
-
-        // $params = [
-        //     'transaction_details' => [
-        //         'order_id' => $pesanan->kode_pesanan,
-        //         'gross_amount' => $pesanan->total,
-        //     ],
-        //     'customer_details' => [
-        //         'first_name' => auth()->user()->name,
-        //         'email' => auth()->user()->email,
-        //     ]
-        // ];
-
-        // $snapToken = \Midtrans\Snap::getSnapToken($params);
+        $snapToken = \Midtrans\Snap::getSnapToken($params);
         
-        // // Simpan token ke database untuk referensi (opsional tapi disarankan)
-        // $pesanan->update(['snap_token' => $snapToken]);
+        // Simpan token ke database untuk referensi
+        $pesanan->update(['snap_token' => $snapToken]);
 
         DB::commit();
 
@@ -141,10 +132,10 @@ class OrderController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Pembayaran berhasil disimulasikan. Pesanan Lunas.',
-            'id_pesanan' => $pesanan->kode_pesanan, 
+            'snap_token' => $snapToken,
+            'id_pesanan' => $pesanan->kode_pesanan,
             'nomor_antrian' => $pesanan->nomor_antrian,
-            'qr_html' => (string) $qrSvg 
+            'qr_html' => (string) $qrSvg,
         ]);
 
     } catch (\Exception $e) {
