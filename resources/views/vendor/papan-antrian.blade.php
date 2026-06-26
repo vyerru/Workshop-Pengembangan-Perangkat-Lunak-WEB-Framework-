@@ -191,29 +191,16 @@
             source.start(0);
         }
 
-        function playAudio(data) {
+        function playAudioFromUrl(url) {
             return new Promise(function (resolve) {
-                if (!audioCtx || !data) {
+                if (!audioCtx || !url) {
                     resolve();
                     return;
                 }
-                try {
-                    var binary = atob(data);
-                    var bytes = new Uint8Array(binary.length);
-                    for (var i = 0; i < binary.length; i++) {
-                        bytes[i] = binary.charCodeAt(i);
-                    }
-                    audioCtx.decodeAudioData(bytes.buffer, function (audioBuffer) {
-                        var source = audioCtx.createBufferSource();
-                        source.buffer = audioBuffer;
-                        source.connect(audioCtx.destination);
-                        source.onended = resolve;
-                        source.start(0);
-                    }, function () { resolve(); });
-                } catch (e) {
-                    console.error('TTS error:', e);
-                    resolve();
-                }
+                var audio = new Audio(url);
+                audio.onended = resolve;
+                audio.onerror = resolve;
+                audio.play().catch(resolve);
             });
         }
 
@@ -282,8 +269,8 @@
 
             playBeep();
 
-            playAudio(item.tts_call_data).then(function () {
-                return playAudio(item.tts_alone_data);
+            playAudioFromUrl(item.tts_call_url).then(function () {
+                return playAudioFromUrl(item.tts_alone_url);
             });
         }
 

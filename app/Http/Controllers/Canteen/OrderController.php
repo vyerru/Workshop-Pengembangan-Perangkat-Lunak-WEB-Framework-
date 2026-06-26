@@ -84,7 +84,7 @@ class OrderController extends Controller
             'kode_pesanan' => $kode_pesanan,
             'qr_token' => Str::random(40),
             'total' => $total_harga,
-            'status_bayar' => 0, // 0 = pending, menunggu konfirmasi Midtrans
+            'status_bayar' => 0, 
             'metode_bayar' => null,
             'nomor_antrian' => $nomorAntrian,
             'status_antrian' => Pesanan::ANTRIAN_PENDING,

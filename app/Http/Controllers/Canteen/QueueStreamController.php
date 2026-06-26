@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Canteen;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pesanan;
-use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class QueueStreamController extends Controller
@@ -38,12 +37,8 @@ class QueueStreamController extends Controller
                     ->get(['id', 'nomor_antrian', 'nama', 'kode_pesanan', 'status_antrian', 'updated_at']);
 
                 $antrian->transform(function ($item) {
-                    $hash1 = md5('Nomor antrian ' . $item->nomor_antrian . ', ' . $item->nama);
-                    $hash2 = md5('Nomor antrian ' . $item->nomor_antrian);
-                    $path1 = 'tts/' . $hash1 . '.mp3';
-                    $path2 = 'tts/' . $hash2 . '.mp3';
-                    $item->tts_call_data = Storage::disk('public')->exists($path1) ? base64_encode(Storage::disk('public')->get($path1)) : null;
-                    $item->tts_alone_data = Storage::disk('public')->exists($path2) ? base64_encode(Storage::disk('public')->get($path2)) : null;
+                    $item->tts_call_url = url('/tts?text=' . urlencode('Nomor antrian ' . $item->nomor_antrian . ', ' . $item->nama));
+                    $item->tts_alone_url = url('/tts?text=' . urlencode('Nomor antrian ' . $item->nomor_antrian));
                     return $item;
                 });
 
