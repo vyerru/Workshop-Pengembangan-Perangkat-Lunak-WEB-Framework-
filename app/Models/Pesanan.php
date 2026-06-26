@@ -52,7 +52,7 @@ class Pesanan extends Model
     public function scopeForVendorToday($query, $vendorId)
     {
         return $query->where('vendor_id', $vendorId)
-            ->whereDate('created_at', today());
+            ->whereBetween('created_at', [today()->startOfDay(), today()->endOfDay()]);
     }
 
     public function detailPesanans(): HasMany

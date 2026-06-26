@@ -30,9 +30,9 @@ class QueueStreamController extends Controller
                 }
 
                 $antrian = Pesanan::where('vendor_id', $vendorId)
-                    ->whereDate('created_at', today())
                     ->where('status_bayar', 1)
                     ->where('status_antrian', Pesanan::ANTRIAN_SIAP_DIPANGGIL)
+                    ->whereBetween('created_at', [today()->startOfDay(), today()->endOfDay()])
                     ->orderBy('nomor_antrian', 'asc')
                     ->get(['id', 'nomor_antrian', 'nama', 'kode_pesanan', 'status_antrian', 'updated_at']);
 
