@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Canteen;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pesanan;
+use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class QueueStreamController extends Controller
@@ -29,26 +30,14 @@ class QueueStreamController extends Controller
                     break;
                 }
 
-                $antrian = Pesanan::where('vendor_id', $vendorId)
-                    ->where('status_bayar', 1)
-                    ->where('status_antrian', Pesanan::ANTRIAN_SIAP_DIPANGGIL)
-                    ->whereBetween('created_at', [today()->startOfDay(), today()->endOfDay()])
-                    ->orderBy('nomor_antrian', 'asc')
-                    ->get(['id', 'nomor_antrian', 'nama', 'kode_pesanan', 'status_antrian', 'updated_at']);
-
-                $antrian->transform(function ($item) {
-                    $item->tts_call_url = url('/tts?text=' . urlencode('Nomor antrian ' . $item->nomor_antrian . ', ' . $item->nama));
-                    $item->tts_alone_url = url('/tts?text=' . urlencode('Nomor antrian ' . $item->nomor_antrian));
-                    return $item;
-                });
-
-                $currentHash = md5($antrian->toJson());
+                $antrianJson = $this->fetchQueue($vendorId);
+                $currentHash = md5($antrianJson);
 
                 if ($currentHash !== $lastHash) {
                     $lastHash = $currentHash;
 
                     echo "event: queue-update\n";
-                    echo "data: " . $antrian->toJson() . "\n\n";
+                    echo "data: " . $antrianJson . "\n\n";
                 } elseif ($tick % config('sse.heartbeat_ticks') === 0) {
                     echo ": keep-alive ping\n\n";
                 }
@@ -59,7 +48,6 @@ class QueueStreamController extends Controller
                 flush();
 
                 $tick++;
-                // sleep(config('sse.query_interval'));
                 sleep(1);
             }
         });
@@ -70,5 +58,34 @@ class QueueStreamController extends Controller
         $response->headers->set('Connection', 'keep-alive');
 
         return $response;
+    }
+
+    private function fetchQueue($vendorId)
+    {
+        $cacheKey = 'sse:queue:' . $vendorId . ':data';
+
+        $cached = Cache::get($cacheKey);
+        if ($cached !== null) {
+            return $cached;
+        }
+
+        $antrian = Pesanan::where('vendor_id', $vendorId)
+            ->where('status_bayar', 1)
+            ->where('status_antrian', Pesanan::ANTRIAN_SIAP_DIPANGGIL)
+            ->whereBetween('created_at', [today()->startOfDay(), today()->endOfDay()])
+            ->orderBy('nomor_antrian', 'asc')
+            ->get(['id', 'nomor_antrian', 'nama', 'kode_pesanan', 'status_antrian', 'updated_at']);
+
+        $antrian->transform(function ($item) {
+            $item->tts_call_url = url('/tts?text=' . urlencode('Nomor antrian ' . $item->nomor_antrian . ', ' . $item->nama));
+            $item->tts_alone_url = url('/tts?text=' . urlencode('Nomor antrian ' . $item->nomor_antrian));
+            return $item;
+        });
+
+        $json = $antrian->toJson();
+
+        Cache::set($cacheKey, $json, 2);
+
+        return $json;
     }
 }

@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Canteen;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\GenerateTtsJob;
 use App\Models\Pesanan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class VendorDashboardController extends Controller
 {
@@ -116,9 +117,13 @@ class VendorDashboardController extends Controller
         }
 
         $pesanan->update(['status_antrian' => $request->status]);
+        Cache::forget('sse:queue:' . $vendor->id . ':data');
 
         if ($request->status === 'siap_dipanggil') {
-            $this->generateTts($pesanan);
+            GenerateTtsJob::dispatch(
+                'Nomor antrian ' . $pesanan->nomor_antrian . ', ' . $pesanan->nama,
+                'Nomor antrian ' . $pesanan->nomor_antrian,
+            );
         }
 
         return response()->json([
@@ -144,7 +149,11 @@ class VendorDashboardController extends Controller
         }
 
         $pesanan->touch();
-        $this->generateTts($pesanan);
+        Cache::forget('sse:queue:' . $vendor->id . ':data');
+        GenerateTtsJob::dispatch(
+            'Nomor antrian ' . $pesanan->nomor_antrian . ', ' . $pesanan->nama,
+            'Nomor antrian ' . $pesanan->nomor_antrian,
+        );
 
         return response()->json([
             'status' => 'success',
@@ -157,27 +166,4 @@ class VendorDashboardController extends Controller
         ]);
     }
 
-    private function generateTts(Pesanan $pesanan)
-    {
-        $texts = [
-            'Nomor antrian ' . $pesanan->nomor_antrian . ', ' . $pesanan->nama,
-            'Nomor antrian ' . $pesanan->nomor_antrian,
-        ];
-
-        foreach ($texts as $text) {
-            $hash = md5($text);
-            $path = 'tts/' . $hash . '.mp3';
-
-            if (Storage::disk('public')->exists($path)) {
-                continue;
-            }
-
-            $escaped = escapeshellarg($text);
-            $output = @shell_exec("gtts-cli {$escaped} --lang id --output - 2>/dev/null");
-
-            if ($output !== null && strlen($output) >= 100) {
-                Storage::disk('public')->put($path, $output);
-            }
-        }
-    }
 }
