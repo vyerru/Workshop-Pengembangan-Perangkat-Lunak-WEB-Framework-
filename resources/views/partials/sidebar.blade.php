@@ -55,12 +55,20 @@
           <i class="mdi mdi-certificate menu-icon"></i>
         </a>
       </li>
-      <li class="nav-item {{ request()->is('praktikum/absensi-nfc') ? 'active' : '' }}">
-        <a class="nav-link" href="{{ route('absensi.nfc.index') }}">
+      <li class="nav-item {{ request()->is('absen*') ? 'active' : '' }}">
+        <a class="nav-link" href="{{ route('absen.index') }}">
           <span class="menu-title">Absensi NFC</span>
           <i class="mdi mdi-wifi menu-icon"></i>
         </a>
       </li>
+      @if(auth()->user()?->hasRole('admin'))
+      <li class="nav-item {{ request()->is('absen/admin*') ? 'active' : '' }}">
+        <a class="nav-link" href="{{ route('absen.admin.index') }}">
+          <span class="menu-title">Admin Absensi</span>
+          <i class="mdi mdi-settings menu-icon"></i>
+        </a>
+      </li>
+      @endif
       <li class="nav-item {{ request()->is('cetak/undangan') ? 'active' : '' }}">
         <a class="nav-link" href="{{ url('cetak/undangan') }}">
           <span class="menu-title">Cetak Undangan</span>

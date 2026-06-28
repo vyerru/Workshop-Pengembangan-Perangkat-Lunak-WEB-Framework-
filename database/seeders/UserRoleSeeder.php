@@ -14,36 +14,40 @@ class UserRoleSeeder extends Seeder
 {
     public function run(): void
     {
-        $vendorUser = User::create([
-            'name' => 'Kantin Mak Murah',
-            'email' => 'vendor@kantin.com',
-            'password' => Hash::make('password'),
-            'role' => User::ROLE_VENDOR,
-        ]);
-        Vendor::create(['user_id' => $vendorUser->id, 'nama_vendor' => $vendorUser->name]);
+        $vendorUser = User::firstOrCreate(
+            ['email' => 'vendor@kantin.com'],
+            ['name' => 'Kantin Mak Murah', 'password' => Hash::make('password'), 'role' => User::ROLE_VENDOR]
+        );
+        if (!$vendorUser->vendor) {
+            Vendor::create(['user_id' => $vendorUser->id, 'nama_vendor' => $vendorUser->name]);
+        }
 
-        $customerUser = User::create([
-            'name' => 'Vier Mahasiswa',
-            'email' => 'customer@student.com',
-            'password' => Hash::make('password'),
-            'role' => User::ROLE_CUSTOMER,
-        ]);
-        Customer::create(['user_id' => $customerUser->id, 'nama' => $customerUser->name]);
+        $customerUser = User::firstOrCreate(
+            ['email' => 'customer@student.com'],
+            ['name' => 'Vier Mahasiswa', 'password' => Hash::make('password'), 'role' => User::ROLE_CUSTOMER]
+        );
+        if (!$customerUser->customer) {
+            Customer::create(['user_id' => $customerUser->id, 'nama' => $customerUser->name]);
+        }
 
-        $adminUser = User::create([
-            'name' => 'Admin Geolocation',
-            'email' => 'admin@geo.com',
-            'password' => Hash::make('password'),
-            'role' => User::ROLE_ADMIN,
-        ]);
-        Admin::create(['user_id' => $adminUser->id, 'nama' => $adminUser->name]);
+        User::firstOrCreate(
+            ['email' => 'admin@geo.com'],
+            ['name' => 'Admin Geolocation', 'password' => Hash::make('password'), 'role' => User::ROLE_ADMIN]
+        );
 
-        $salesUser = User::create([
-            'name' => 'Sales Lapangan',
-            'email' => 'sales@geo.com',
-            'password' => Hash::make('password'),
-            'role' => User::ROLE_SALES,
-        ]);
-        Sales::create(['user_id' => $salesUser->id, 'nama' => $salesUser->name]);
+        User::firstOrCreate(
+            ['email' => 'sales@geo.com'],
+            ['name' => 'Sales Lapangan', 'password' => Hash::make('password'), 'role' => User::ROLE_SALES]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'mahasiswa@student.com'],
+            ['name' => 'Mahasiswa Absensi', 'password' => Hash::make('password'), 'role' => User::ROLE_MAHASISWA]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'admin@absen.com'],
+            ['name' => 'Admin Absensi', 'password' => Hash::make('password'), 'role' => User::ROLE_ADMIN]
+        );
     }
 }

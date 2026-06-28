@@ -151,7 +151,13 @@ Route::middleware(['auth', 'role:sales'])->prefix('geolocation')->name('geolocat
     Route::get('/kunjungan/riwayat', [KunjunganController::class, 'riwayat'])->name('kunjungan.riwayat');
 });
 
-Route::middleware(['auth'])->prefix('praktikum')->name('absensi.')->group(function () {
-    Route::get('/absensi-nfc', [AbsensiKuliahController::class, 'index'])->name('nfc.index');
-    Route::post('/absensi-nfc', [AbsensiKuliahController::class, 'store'])->name('nfc.store');
+Route::middleware(['auth', 'role:mahasiswa'])->prefix('absen')->name('absen.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Absensi\AbsensiController::class, 'indexMahasiswa'])->name('index');
+    Route::post('/scan', [\App\Http\Controllers\Absensi\AbsensiController::class, 'scan'])->name('scan');
+});
+
+Route::middleware(['auth', 'role:admin'])->prefix('absen/admin')->name('absen.admin.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Absensi\AbsensiController::class, 'adminIndex'])->name('index');
+    Route::post('/pertemuan', [\App\Http\Controllers\Absensi\AbsensiController::class, 'adminStorePertemuan'])->name('pertemuan.store');
+    Route::get('/rekap/{pertemuan}', [\App\Http\Controllers\Absensi\AbsensiController::class, 'adminRekap'])->name('rekap');
 });

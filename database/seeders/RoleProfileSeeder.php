@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\Role;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\Customer;
@@ -13,6 +14,24 @@ class RoleProfileSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call(RoleSeeder::class);
+
+        $roleMap = [];
+        foreach (['admin', 'vendor', 'customer', 'sales', 'mahasiswa'] as $roleName) {
+            $role = Role::where('name', $roleName)->first();
+            if ($role) {
+                $roleMap[$roleName] = $role->id;
+            }
+        }
+
+        User::whereNull('role_id')->chunk(100, function ($users) use ($roleMap) {
+            foreach ($users as $user) {
+                if ($user->role && isset($roleMap[$user->role])) {
+                    $user->update(['role_id' => $roleMap[$user->role]]);
+                }
+            }
+        });
+
         $users = User::all();
 
         foreach ($users as $user) {

@@ -3,7 +3,10 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Absensi\Absensi;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -22,6 +25,7 @@ class User extends Authenticatable
     const ROLE_VENDOR = 'vendor';
     const ROLE_CUSTOMER = 'customer';
     const ROLE_SALES = 'sales';
+    const ROLE_MAHASISWA = 'mahasiswa';
     protected $fillable = [
         'name',
         'email',
@@ -29,7 +33,7 @@ class User extends Authenticatable
         'id_google',
         'otp',
         'role',
-        'nfc_uid',
+        'role_id',
     ];
 
     /**
@@ -73,6 +77,16 @@ class User extends Authenticatable
     public function customer(): HasOne
     {
         return $this->hasOne(Customer::class, 'user_id');
+    }
+
+    public function roleRel(): BelongsTo
+    {
+        return $this->belongsTo(Role::class, 'role_id');
+    }
+
+    public function absensis(): HasMany
+    {
+        return $this->hasMany(Absensi::class);
     }
 
     public function hasRole(string $role): bool {
