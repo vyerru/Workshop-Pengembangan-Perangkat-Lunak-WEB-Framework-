@@ -20,6 +20,7 @@ use App\Http\Controllers\Canteen\OrderController;
 use App\Http\Controllers\Canteen\VendorDashboardController;
 use App\Http\Controllers\Canteen\QueueStreamController;
 use App\Http\Controllers\Canteen\TtsController;
+
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\Geolocation\TokoController;
 use App\Http\Controllers\Geolocation\KunjunganController;
@@ -38,13 +39,15 @@ Route::get('/otp-verify', [LoginCallbackController::class, 'otpView'])->name('ot
 Route::post('/otp-verify', [LoginCallbackController::class, 'otpVerify'])->name('otp.verify');
 Auth::routes();
 
-Route::get('/sse/queue/{vendor}', [QueueStreamController::class, 'stream'])->withoutMiddleware([
-    Illuminate\Cookie\Middleware\EncryptCookies::class,
-    Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-    Illuminate\Session\Middleware\StartSession::class,
-    Illuminate\View\Middleware\ShareErrorsFromSession::class,
-    Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
-]);
+Route::get('/sse/queue/{vendor}', [QueueStreamController::class, 'stream'])
+    ->middleware('throttle:120,1')
+    ->withoutMiddleware([
+        Illuminate\Cookie\Middleware\EncryptCookies::class,
+        Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+        Illuminate\Session\Middleware\StartSession::class,
+        Illuminate\View\Middleware\ShareErrorsFromSession::class,
+        Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
+    ]);
 
 Route::get('/tts', [TtsController::class, 'proxy'])->withoutMiddleware([
     Illuminate\Cookie\Middleware\EncryptCookies::class,
@@ -116,6 +119,7 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     Route::get('/papan-antrian', [VendorDashboardController::class, 'papanAntrian'])->name('antrian.display');
     Route::patch('/pesanan/{pesanan}/status', [VendorDashboardController::class, 'updateStatus'])->name('pesanan.update-status');
     Route::post('/pesanan/{pesanan}/panggil-ulang', [VendorDashboardController::class, 'panggilUlang'])->name('pesanan.panggil-ulang');
+    Route::get('/stale-calls', [VendorDashboardController::class, 'checkStaleCalls'])->name('stale-calls');
 
     // Rute CRUD Menu (Hanya Vendor)
     Route::resource('menus', VendorMenuController::class)->except(['show']);

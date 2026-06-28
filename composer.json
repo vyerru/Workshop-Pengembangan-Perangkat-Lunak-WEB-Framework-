@@ -15,6 +15,7 @@
         "laravolt/indonesia": "^0.41.0",
         "midtrans/midtrans-php": "^2.6",
         "picqer/php-barcode-generator": "^3.2",
+        "predis/predis": "^3.5",
         "simplesoftwareio/simple-qrcode": "^4.2"
     },
     "require-dev": {

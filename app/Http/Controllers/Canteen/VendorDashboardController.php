@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Canteen;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\GenerateTtsJob;
 use App\Models\Pesanan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -119,13 +118,6 @@ class VendorDashboardController extends Controller
         $pesanan->update(['status_antrian' => $request->status]);
         Cache::forget('sse:queue:' . $vendor->id . ':data');
 
-        if ($request->status === 'siap_dipanggil') {
-            GenerateTtsJob::dispatch(
-                'Nomor antrian ' . $pesanan->nomor_antrian . ', ' . $pesanan->nama,
-                'Nomor antrian ' . $pesanan->nomor_antrian,
-            );
-        }
-
         return response()->json([
             'status' => 'success',
             'message' => 'Status antrian berhasil diperbarui.',
@@ -150,10 +142,6 @@ class VendorDashboardController extends Controller
 
         $pesanan->touch();
         Cache::forget('sse:queue:' . $vendor->id . ':data');
-        GenerateTtsJob::dispatch(
-            'Nomor antrian ' . $pesanan->nomor_antrian . ', ' . $pesanan->nama,
-            'Nomor antrian ' . $pesanan->nomor_antrian,
-        );
 
         return response()->json([
             'status' => 'success',
@@ -166,4 +154,24 @@ class VendorDashboardController extends Controller
         ]);
     }
 
+    public function checkStaleCalls()
+    {
+        $vendor = Auth::user()->vendor;
+        if (!$vendor) {
+            return response()->json(['status' => 'error', 'message' => 'Vendor tidak ditemukan.'], 403);
+        }
+
+        $staleTimeout = now()->subMinutes(5);
+
+        $staleOrders = Pesanan::where('vendor_id', $vendor->id)
+            ->where('status_bayar', 1)
+            ->where('status_antrian', Pesanan::ANTRIAN_SIAP_DIPANGGIL)
+            ->where('updated_at', '<', $staleTimeout)
+            ->get(['id', 'nomor_antrian', 'nama', 'kode_pesanan', 'updated_at']);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $staleOrders,
+        ]);
+    }
 }

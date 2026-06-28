@@ -54,7 +54,13 @@ class OrderController extends Controller
 
         // 2. Hitung ulang total harga secara mutlak dari database
         foreach ($request->cart as $item) {
-            $menu = Menu::where('vendor_id', $vendor_id)->findOrFail($item['menu_id']);
+            $menu = Menu::find($item['menu_id']);
+            if (!$menu) {
+                throw new \Exception("Menu dengan ID {$item['menu_id']} tidak ditemukan.");
+            }
+            if ($menu->vendor_id != $vendor_id) {
+                throw new \Exception("Menu {$menu->nama_menu} bukan milik vendor yang dipilih.");
+            }
             $subtotal = $menu->harga * $item['jumlah'];
             $total_harga += $subtotal;
 

@@ -144,17 +144,35 @@
     // FETCH MENU SAAT VENDOR BERUBAH
     // ====================================================
     document.getElementById('vendor-select').addEventListener('change', async function() {
-        const vendorId = this.value;
+        const newVendorId = this.value;
 
-        if (!vendorId) {
+        if (!newVendorId) {
             showState('empty');
             return;
         }
 
+        if (cart.length > 0) {
+            const result = await Swal.fire({
+                title: 'Pindah Vendor?',
+                text: 'Mengganti vendor akan mengosongkan keranjang belanja Anda.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Kosongkan',
+                cancelButtonText: 'Batal',
+            });
+            if (!result.isConfirmed) {
+                this.value = this.dataset.prevValue || '';
+                return;
+            }
+            cart = [];
+            renderCart();
+        }
+
+        this.dataset.prevValue = newVendorId;
         showState('loading');
 
         try {
-            const response = await axios.get(`/canteen/pesanan/menus/${vendorId}`);
+            const response = await axios.get(`/canteen/pesanan/menus/${newVendorId}`);
             const menus = response.data.data;
 
             if (!menus || menus.length === 0) {
@@ -221,9 +239,19 @@
         const btn = e.target.closest('.btn-tambah-menu');
         if (!btn) return;
 
+        const vendorId = document.getElementById('vendor-select').value;
+        if (!vendorId) return;
+
+        if (cart.length > 0 && cart[0].vendor_id !== vendorId) {
+            Swal.fire('Tidak Bisa', 'Keranjang hanya bisa berisi menu dari SATU vendor. Selesaikan atau kosongkan pesanan saat ini terlebih dahulu.', 'warning');
+            return;
+        }
+
         const item = {
             id_menu: btn.dataset.id,
+            vendor_id: vendorId,
             nama: btn.dataset.nama,
+            nama_menu: btn.dataset.nama,
             harga: parseInt(btn.dataset.harga),
             jumlah: 1,
         };

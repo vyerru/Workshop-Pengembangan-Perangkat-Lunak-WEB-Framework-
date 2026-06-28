@@ -180,27 +180,51 @@
     <script>
         let lastCalledId = null;
         let evtSource = null;
-        let audioCtx = null;
-        let beepBuffer = null;
+        let queueData = [];
+        let audioQueue = [];
+        let isSpeaking = false;
 
-        function playBeep() {
-            if (!audioCtx || !beepBuffer) return;
-            var source = audioCtx.createBufferSource();
-            source.buffer = beepBuffer;
-            source.connect(audioCtx.destination);
-            source.start(0);
+        function unlockAudio() {
+            var ctx = new (window.AudioContext || window.webkitAudioContext)();
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+            var silent = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=');
+            silent.play().catch(function(){});
         }
 
-        function playAudioFromUrl(url) {
+        function enqueueAudio(url) {
             return new Promise(function (resolve) {
-                if (!audioCtx || !url) {
-                    resolve();
-                    return;
-                }
-                var audio = new Audio(url);
-                audio.onended = resolve;
-                audio.onerror = resolve;
-                audio.play().catch(resolve);
+                audioQueue.push({ url: url, resolve: resolve });
+                processQueue();
+            });
+        }
+
+        function processQueue() {
+            if (isSpeaking || audioQueue.length === 0) return;
+            isSpeaking = true;
+            var item = audioQueue.shift();
+            if (!item.url) {
+                isSpeaking = false;
+                item.resolve();
+                processQueue();
+                return;
+            }
+            var audio = new Audio(item.url);
+            audio.onended = function () {
+                isSpeaking = false;
+                item.resolve();
+                processQueue();
+            };
+            audio.onerror = function () {
+                isSpeaking = false;
+                item.resolve();
+                processQueue();
+            };
+            audio.play().catch(function () {
+                isSpeaking = false;
+                item.resolve();
+                processQueue();
             });
         }
 
@@ -208,42 +232,31 @@
             document.getElementById('start-screen').style.display = 'none';
             document.getElementById('vendor-label').textContent = 'Vendor #{{ $vendorId ?? '?' }}';
 
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-
-            fetch('{{ asset("assets/audio/BEEP_Beep of a cash register (ID 1417)_BigSoundBank.com.mp3") }}')
-                .then(function (r) { return r.arrayBuffer(); })
-                .then(function (buf) { return audioCtx.decodeAudioData(buf); })
-                .then(function (buf) { beepBuffer = buf; })
-                .catch(function () {});
+            unlockAudio();
 
             evtSource = new EventSource('/sse/queue/{{ $vendorId }}');
 
-            evtSource.addEventListener('queue-update', function(e) {
-                var data = JSON.parse(e.data);
+            evtSource.addEventListener('queue-full', function(e) {
+                queueData = JSON.parse(e.data);
+                console.log('Queue full received:', queueData.length, 'items');
+                renderAll();
+            });
 
-                console.log('Queue update received:', data);
+            evtSource.addEventListener('queue-add', function(e) {
+                var added = JSON.parse(e.data);
+                console.log('Queue add:', added.length, 'items');
+                queueData = queueData.concat(added);
+                queueData.sort(function (a, b) { return a.nomor_antrian - b.nomor_antrian; });
+                renderAll();
+            });
 
-                if (data.length > 0) {
-                    var latest = data[data.length - 1];
-
-                    if (latest.id !== lastCalledId) {
-                        lastCalledId = latest.id;
-                        playCall(latest);
-                    }
-
-                    renderQueueList(data);
-                } else {
-                    var container = document.querySelector('#current-call');
-                    container.innerHTML = [
-                        '<div class="label">Sedang Dipanggil</div>',
-                        '<div class="empty-text">Belum ada panggilan</div>',
-                    ].join('');
-                    document.getElementById('queue-list').innerHTML = '';
-                }
+            evtSource.addEventListener('queue-remove', function(e) {
+                var removedIds = JSON.parse(e.data);
+                console.log('Queue remove:', removedIds);
+                queueData = queueData.filter(function (item) {
+                    return removedIds.indexOf(item.id) === -1;
+                });
+                renderAll();
             });
 
             evtSource.onopen = function() {
@@ -259,6 +272,30 @@
             };
         }
 
+        function renderAll() {
+            var container = document.querySelector('#current-call');
+            if (queueData.length > 0) {
+                var latest = queueData[queueData.length - 1];
+                if (latest.id !== lastCalledId) {
+                    lastCalledId = latest.id;
+                    playCall(latest);
+                } else {
+                    container.innerHTML = [
+                        '<div class="label">Sedang Dipanggil</div>',
+                        '<div class="number">' + latest.nomor_antrian + '</div>',
+                        '<div class="name">' + latest.nama + '</div>',
+                    ].join('');
+                }
+                renderQueueList(queueData);
+            } else {
+                container.innerHTML = [
+                    '<div class="label">Sedang Dipanggil</div>',
+                    '<div class="empty-text">Belum ada panggilan</div>',
+                ].join('');
+                document.getElementById('queue-list').innerHTML = '';
+            }
+        }
+
         function playCall(item) {
             var container = document.querySelector('#current-call');
             container.innerHTML = [
@@ -267,10 +304,8 @@
                 '<div class="name">' + item.nama + '</div>',
             ].join('');
 
-            playBeep();
-
-            playAudioFromUrl(item.tts_call_url).then(function () {
-                return playAudioFromUrl(item.tts_alone_url);
+            enqueueAudio(item.tts_call_url).then(function () {
+                return enqueueAudio(item.tts_alone_url);
             });
         }
 

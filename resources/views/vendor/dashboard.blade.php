@@ -28,6 +28,23 @@
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
     .btn-aksi { font-size: 0.78rem; padding: 2px 10px; }
     .queue-row:last-child { border-bottom: none !important; }
+    .queue-row.stale {
+        background-color: #fff5f5;
+        border-left: 4px solid #dc3545 !important;
+        border-radius: 4px;
+        padding-left: 12px !important;
+    }
+    .queue-row.stale .badge-siap_dipanggil {
+        background: #dc3545 !important;
+        animation: pulse 0.8s infinite;
+    }
+    .stale-label {
+        color: #dc3545;
+        font-size: 0.72rem;
+        font-weight: 600;
+        display: block;
+        margin-top: 2px;
+    }
 </style>
 @endpush
 
@@ -139,7 +156,7 @@
                                 @case('selesai') Selesai @break
                             @endswitch
                         </span>
-                        <div class="mt-1">
+                        <div class="mt-1 btn-container">
                             @if($antrian->status_antrian === 'pending')
                             <button class="btn btn-sm btn-info btn-aksi" onclick="updateStatus({{ $antrian->id }}, 'diproses')">Proses</button>
                             @elseif($antrian->status_antrian === 'diproses')
@@ -244,6 +261,7 @@
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     axios.defaults.headers.common['Accept'] = 'application/json';
@@ -330,6 +348,38 @@
             alert('Gagal mengakses kamera. Pastikan izin kamera diberikan.');
         });
 
+        function showToast(icon, title, message) {
+            Swal.fire({
+                icon: icon,
+                title: title,
+                text: message,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            });
+        }
+
+        function updateRowButtons(row, status, pesananId) {
+            var btnContainer = row.querySelector('.btn-container');
+            if (!btnContainer) return;
+
+            if (status === 'pending') {
+                btnContainer.innerHTML = '<button class="btn btn-sm btn-info btn-aksi" onclick="updateStatus(' + pesananId + ', \'diproses\')">Proses</button>';
+            } else if (status === 'diproses') {
+                btnContainer.innerHTML =
+                    '<button class="btn btn-sm btn-success btn-aksi" onclick="updateStatus(' + pesananId + ', \'siap_dipanggil\')">Panggil</button>' +
+                    '<button class="btn btn-sm btn-outline-secondary btn-aksi" onclick="updateStatus(' + pesananId + ', \'selesai\')">Lewati</button>';
+            } else if (status === 'siap_dipanggil') {
+                btnContainer.innerHTML =
+                    '<button class="btn btn-sm btn-outline-warning btn-aksi" onclick="panggilUlang(' + pesananId + ')">Panggil Ulang</button>' +
+                    '<button class="btn btn-sm btn-secondary btn-aksi" onclick="updateStatus(' + pesananId + ', \'selesai\')">Selesai</button>';
+            } else if (status === 'selesai') {
+                btnContainer.innerHTML = '<span class="text-muted small">Selesai</span>';
+            }
+        }
+
         function updateStatus(pesananId, status) {
             const url = `{{ url('vendor/pesanan') }}/${pesananId}/status`;
             axios.patch(url, { status })
@@ -347,13 +397,21 @@
                                 selesai: 'Selesai',
                             };
                             badge.textContent = labels[status] || status;
+                            updateRowButtons(row, status, pesananId);
                         }
-                        location.reload();
+
+                        const statusLabels = {
+                            pending: 'Pending',
+                            diproses: 'Diproses',
+                            siap_dipanggil: 'Siap Dipanggil',
+                            selesai: 'Selesai',
+                        };
+                        showToast('success', 'Berhasil', 'Status diubah ke ' + (statusLabels[status] || status));
                     }
                 })
                 .catch(function (error) {
                     const msg = error.response?.data?.message || 'Gagal memperbarui status.';
-                    alert(msg);
+                    showToast('error', 'Gagal', msg);
                 });
         }
 
@@ -362,14 +420,44 @@
             axios.post(url)
                 .then(function (response) {
                     if (response.data.status === 'success') {
-                        location.reload();
+                        showToast('success', 'Berhasil', 'Pemanggilan ulang telah dikirim ke papan antrian.');
                     }
                 })
                 .catch(function (error) {
                     const msg = error.response?.data?.message || 'Gagal memanggil ulang.';
-                    alert(msg);
+                    showToast('error', 'Gagal', msg);
                 });
         }
+
+        function checkStaleCalls() {
+            axios.get('{{ route("vendor.stale-calls") }}')
+                .then(function (response) {
+                    if (response.data.status !== 'success') return;
+
+                    document.querySelectorAll('.queue-row').forEach(function (row) {
+                        row.classList.remove('stale');
+                        var staleLabel = row.querySelector('.stale-label');
+                        if (staleLabel) staleLabel.remove();
+                    });
+
+                    response.data.data.forEach(function (order) {
+                        var row = document.querySelector('.queue-row[data-id="' + order.id + '"]');
+                        if (!row) return;
+                        row.classList.add('stale');
+                        var nameEl = row.querySelector('.font-weight-bold');
+                        if (nameEl && !row.querySelector('.stale-label')) {
+                            var badge = document.createElement('span');
+                            badge.className = 'stale-label';
+                            badge.textContent = 'Belum dikonfirmasi (' + order.nama + ')';
+                            nameEl.parentNode.appendChild(badge);
+                        }
+                    });
+                })
+                .catch(function () {});
+        }
+
+        setTimeout(checkStaleCalls, 5000);
+        setInterval(checkStaleCalls, 30000);
     });
 </script>
 @endpush

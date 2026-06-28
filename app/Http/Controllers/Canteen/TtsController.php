@@ -43,6 +43,18 @@ class TtsController extends Controller
         ]);
     }
 
+    private function fetchFromGttsCli(string $text): ?string
+    {
+        $escaped = escapeshellarg($text);
+        $output = @shell_exec("/home/vier/.local/bin/gtts-cli {$escaped} --lang id --output - 2>/dev/null");
+
+        if ($output === null || strlen($output) < 100) {
+            return null;
+        }
+
+        return $output;
+    }
+
     private function fetchFromGoogle(string $text): ?string
     {
         $url = 'https://translate.google.com/translate_tts?ie=UTF-8&q='
@@ -52,7 +64,7 @@ class TtsController extends Controller
         $context = stream_context_create([
             'http' => [
                 'header' => "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36\r\n",
-                'timeout' => 3,
+                'timeout' => 5,
             ],
             'ssl' => [
                 'verify_peer' => false,
@@ -67,17 +79,5 @@ class TtsController extends Controller
         }
 
         return $mp3;
-    }
-
-    private function fetchFromGttsCli(string $text): ?string
-    {
-        $escaped = escapeshellarg($text);
-        $output = @shell_exec("gtts-cli {$escaped} --lang id --output - 2>/dev/null");
-
-        if ($output === null || strlen($output) < 100) {
-            return null;
-        }
-
-        return $output;
     }
 }
