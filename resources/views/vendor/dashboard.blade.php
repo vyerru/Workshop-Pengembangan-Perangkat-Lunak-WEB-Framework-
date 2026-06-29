@@ -11,6 +11,9 @@
         padding: 16px;
         background: #f8f9fa;
     }
+    #reader video {
+        transform: scaleX(-1);
+    }
     #reader__dashboard_section_swiper button {
         background: #007bff;
         color: #fff;
@@ -68,7 +71,10 @@
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">Pindai QR Code Pesanan</h4>
-                <div id="reader"></div>
+                <button id="btn-start-scan" class="btn btn-gradient-primary btn-lg mb-3 w-100">
+                    <i class="mdi mdi-camera"></i> Mulai Scan QR
+                </button>
+                <div id="reader" style="display:none;"></div>
             </div>
         </div>
     </div>
@@ -311,6 +317,8 @@
 
         function onScanSuccess(decodedText) {
             html5QrCode.stop().then(() => {
+                readerEl.style.display = 'none';
+                btnScan.style.display = '';
                 audioBeep.currentTime = 0;
                 audioBeep.play();
 
@@ -339,14 +347,25 @@
         }
 
         const html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start(
-            { facingMode: "environment" },
-            { fps: 10, qrbox: { width: 250, height: 250 } },
-            onScanSuccess
-        ).catch(function (err) {
-            console.error('Gagal memulai kamera:', err);
-            alert('Gagal mengakses kamera. Pastikan izin kamera diberikan.');
-        });
+        const readerEl = document.getElementById('reader');
+        const btnScan = document.getElementById('btn-start-scan');
+
+        function startScanner() {
+            readerEl.style.display = '';
+            btnScan.style.display = 'none';
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                onScanSuccess
+            ).catch(function (err) {
+                readerEl.style.display = 'none';
+                btnScan.style.display = '';
+                console.error('Gagal memulai kamera:', err);
+                alert('Gagal mengakses kamera. Pastikan izin kamera diberikan.');
+            });
+        }
+
+        btnScan.addEventListener('click', startScanner);
 
         function showToast(icon, title, message) {
             Swal.fire({

@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             BarangSeeder::class,
             TokoSeeder::class,
             RoleProfileSeeder::class,
+            MenuSeeder::class,
         ]);
 
         User::firstOrCreate(
